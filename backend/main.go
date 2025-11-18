@@ -86,6 +86,8 @@ func registerRoutes(router *gin.Engine) {
 	// 初始化服务和处理器
 	userService := services.NewUserService()
 	userHandler := handlers.NewUserHandler(userService)
+	assetService := services.NewAssetService()
+	assetHandler := handlers.NewAssetHandler(assetService)
 
 	// 健康检查
 	router.GET("/health", func(c *gin.Context) {
@@ -115,10 +117,10 @@ func registerRoutes(router *gin.Engine) {
 			auth.POST("/users/verify-identity", userHandler.VerifyIdentity)
 			auth.GET("/users/points", userHandler.GetPoints)
 
-			// 藏品相关路由 (待实现)
+			// 藏品相关路由
 			assets := auth.Group("/assets")
 			{
-				// assets.POST("", assetHandler.CreateAsset)
+				assets.POST("", assetHandler.SubmitMintRequest) // 提交铸造请求
 			}
 
 			// 交易相关路由 (待实现)
@@ -144,8 +146,8 @@ func registerRoutes(router *gin.Engine) {
 		// 公开的藏品路由
 		assetsPublic := v1.Group("/assets")
 		{
-			// assetsPublic.GET("", assetHandler.ListAssets)
-			// assetsPublic.GET("/:id", assetHandler.GetAssetDetail)
+			assetsPublic.GET("", assetHandler.ListAssets)
+			assetsPublic.GET("/:id", assetHandler.GetAssetDetail)
 		}
 
 		// 公开的集换路由

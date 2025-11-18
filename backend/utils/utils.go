@@ -26,3 +26,11 @@ func GenerateUID() string {
 	rand.Seed(time.Now().UnixNano())
 	return fmt.Sprintf("U%d%04d", time.Now().Unix()%1000000, rand.Intn(10000))
 }
+
+// GenerateTokenID 生成唯一的TokenID，模拟链上ID
+func GenerateTokenID(assetID uint64, instanceNo uint64) string {
+	// 格式：ASSETID-INSTANCENO-HASH(时间戳+随机数)
+	rand.Seed(time.Now().UnixNano())
+	hash := fmt.Sprintf("%x", time.Now().UnixNano())
+	return fmt.Sprintf("%d-%d-%s", assetID, instanceNo, hash[:8])
+}
