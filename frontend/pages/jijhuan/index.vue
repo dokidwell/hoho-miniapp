@@ -1,183 +1,127 @@
 <template>
-  <view class="page-container">
-    <!-- 自定义导航栏 -->
-    <view class="navbar">
-      <view class="navbar-title">集换专区</view>
-      <view class="navbar-right">
-        <uni-icons type="more-filled" size="24" color="#333"></uni-icons>
-        <view class="filter-toggle">
-          <uni-icons type="circle" size="20" color="#3a8fff"></uni-icons>
-        </view>
+  <view class="page">
+    <!-- 顶部搜索栏 -->
+    <view class="header">
+      <view class="search-box">
+        <text class="search-icon">🔍</text>
+        <input class="search-input" placeholder="搜索..." v-model="keyword" />
+      </view>
+      <view class="filter-btn" @click="showFilter">
+        <text class="filter-icon">⚙️</text>
       </view>
     </view>
 
-    <!-- 分类标签 -->
-    <view class="category-tabs">
-      <view
-        class="tab-item"
-        :class="{ active: activeCategory === 'all' }"
-        @click="activeCategory = 'all'"
-      >
-        全部
-      </view>
-      <view
-        class="tab-item"
-        :class="{ active: activeCategory === 'pfp' }"
-        @click="activeCategory = 'pfp'"
-      >
-        PFP
-      </view>
-      <view
-        class="tab-item"
-        :class="{ active: activeCategory === 'collection' }"
-        @click="activeCategory = 'collection'"
-      >
-        合集作品
-      </view>
-      <view
-        class="tab-item"
-        :class="{ active: activeCategory === 'derivative' }"
-        @click="activeCategory = 'derivative'"
-      >
-        衍生作品
-      </view>
-    </view>
+    <!-- 集换专区标题 -->
+    <view class="section-title">集换专区</view>
 
-    <!-- 排序和筛选 -->
-    <view class="filter-bar">
-      <view class="filter-item" @click="showSortMenu = !showSortMenu">
-        <text>排序</text>
-        <uni-icons type="down" size="16" color="#666"></uni-icons>
+    <!-- 分类Tab -->
+    <scroll-view class="category-tabs" scroll-x>
+      <view 
+        class="tab-item" 
+        v-for="cat in categories" 
+        :key="cat.value"
+        :class="{ 'tab-active': currentCategory === cat.value }"
+        @click="selectCategory(cat.value)">
+        {{ cat.label }}
       </view>
-      <view class="filter-item" @click="showPriceFilter = !showPriceFilter">
-        <text>价格</text>
-        <uni-icons type="down" size="16" color="#666"></uni-icons>
-      </view>
-      <view class="filter-item" @click="showMoreFilter = !showMoreFilter">
-        <text>更多</text>
-        <uni-icons type="down" size="16" color="#666"></uni-icons>
-      </view>
-    </view>
+    </scroll-view>
 
-    <!-- 挂售列表 -->
-    <view class="listings-grid">
-      <view
-        class="listing-card"
-        v-for="listing in listings"
-        :key="listing.id"
-        @click="goToListingDetail(listing.id)"
-      >
-        <!-- 藏品图片 -->
-        <image :src="listing.asset.image_url" class="listing-image" mode="aspectFill"></image>
+    <!-- 藏品网格（2列） -->
+    <scroll-view class="asset-grid" scroll-y @scrolltolower="loadMore">
+      <!-- 加载中 -->
+      <view v-if="loading && listings.length === 0" class="loading-wrapper">
+        <text class="loading-text">加载中...</text>
+      </view>
 
-        <!-- 藏品信息 -->
-        <view class="listing-info">
-          <view class="asset-name">{{ listing.asset.name }}</view>
-          <view class="serial-number">#{{ listing.serial_number }}</view>
-          <view class="price-section">
-            <view class="price">
-              <text class="price-value">{{ listing.price }}</text>
-              <text class="price-unit">积分</text>
+      <!-- 藏品列表 -->
+      <view v-else-if="listings.length > 0" class="grid-wrapper">
+        <view v-for="item in listings" :key="item.id" class="asset-card" @click="goToDetail(item.asset.id)">
+          <!-- 藏品图片 -->
+          <view class="asset-image-wrapper">
+            <view class="asset-image-placeholder">
+              <text class="placeholder-emoji">🖼️</text>
+            </view>
+            
+            <!-- 左上角标签 -->
+            <view v-if="item.is_official" class="asset-tag">
+              <text class="tag-text">合集作品</text>
+            </view>
+            
+            <!-- 左下角可兑数量 -->
+            <view class="asset-available">
+              <text class="available-icon">⏰</text>
+              <text class="available-text">{{ item.available_count || 0 }}份可兑</text>
             </view>
           </view>
-          <view class="seller-info">
-            <image :src="listing.seller.avatar_url" class="seller-avatar"></image>
-            <text class="seller-name">{{ listing.seller.nickname }}</text>
+
+          <!-- 藏品信息 -->
+          <view class="asset-info">
+            <view class="asset-name">{{ item.asset.name }}</view>
+            <view class="asset-price-row">
+              <text class="price-value number-display">{{ formatPrice(item.price) }}</text>
+              <text class="price-unit">起</text>
+            </view>
+            <view class="asset-supply">
+              <text class="supply-icon">📦</text>
+              <text class="supply-text">{{ item.asset.total_supply }}份</text>
+            </view>
           </view>
         </view>
-
-        <!-- 购买按钮 -->
-        <view class="buy-button" @click.stop="buyNow(listing.id)">
-          <text>立即兑换</text>
-        </view>
       </view>
-    </view>
 
-    <!-- 加载更多 -->
-    <view class="load-more" v-if="!loading && hasMore">
-      <text @click="loadMore">加载更多</text>
-    </view>
+      <!-- 空状态 -->
+      <view v-else class="empty-wrapper">
+        <text class="empty-emoji">📭</text>
+        <text class="empty-text">暂无挂售藏品</text>
+      </view>
+    </scroll-view>
 
-    <!-- 加载中 -->
-    <view class="loading" v-if="loading">
-      <uni-load-more status="loading"></uni-load-more>
-    </view>
+    <!-- 底部导航栏 -->
+    <TabBar :active="2" />
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import TabBar from '@/components/TabBar/TabBar.vue'
+import request from '@/api/request'
+import { API_ENDPOINTS } from '@/api/config'
+import { formatPoints } from '@/utils/format'
 
-const activeCategory = ref('all')
-const listings = ref([])
+const keyword = ref('')
 const loading = ref(false)
-const hasMore = ref(true)
+const listings = ref([])
 const page = ref(1)
 const pageSize = ref(20)
+const currentCategory = ref('all')
 
-const showSortMenu = ref(false)
-const showPriceFilter = ref(false)
-const showMoreFilter = ref(false)
+const categories = ref([
+  { label: '全部', value: 'all' },
+  { label: 'PFP', value: 'pfp' },
+  { label: '合集作品', value: 'collection' },
+  { label: '衍生作品', value: 'derivative' },
+  { label: '其他', value: 'other' }
+])
 
-// 模拟数据
-const mockListings = [
-  {
-    id: 1,
-    asset: {
-      id: 1,
-      name: '真我HOHO',
-      image_url: 'https://via.placeholder.com/300x300?text=HOHO1'
-    },
-    serial_number: 1958,
-    price: '18500.00000000',
-    seller: {
-      id: 1,
-      nickname: '卖家昵称',
-      avatar_url: 'https://via.placeholder.com/40x40?text=User'
-    }
-  },
-  {
-    id: 2,
-    asset: {
-      id: 1,
-      name: '真我HOHO',
-      image_url: 'https://via.placeholder.com/300x300?text=HOHO2'
-    },
-    serial_number: 1959,
-    price: '18500.00000000',
-    seller: {
-      id: 2,
-      nickname: '卖家昵称2',
-      avatar_url: 'https://via.placeholder.com/40x40?text=User2'
-    }
-  }
-]
+onMounted(() => {
+  fetchListings()
+})
 
 // 获取挂售列表
-const fetchListings = async (isLoadMore = false) => {
-  if (loading.value) return
-
+async function fetchListings() {
   loading.value = true
   try {
-    // TODO: 调用API获取真实数据
-    // const response = await request.get(API_ENDPOINTS.TRADE.GET_LISTINGS, {
-    //   page: page.value,
-    //   page_size: pageSize.value
-    // })
-
-    // 使用模拟数据
-    if (isLoadMore) {
-      listings.value = [...listings.value, ...mockListings]
-    } else {
-      listings.value = mockListings
-    }
-
-    hasMore.value = mockListings.length === pageSize.value
-    page.value++
+    const res = await request.get(API_ENDPOINTS.TRADE.GET_LISTINGS, {
+      page: page.value,
+      page_size: pageSize.value,
+      category: currentCategory.value === 'all' ? '' : currentCategory.value,
+      sort_by: 'price',
+      sort_order: 'asc'
+    })
+    listings.value = res.list || []
   } catch (error) {
-    console.error('Failed to fetch listings:', error)
     uni.showToast({
-      title: '加载失败',
+      title: error.message || '加载失败',
       icon: 'none'
     })
   } finally {
@@ -185,249 +129,263 @@ const fetchListings = async (isLoadMore = false) => {
   }
 }
 
+// 选择分类
+function selectCategory(value) {
+  currentCategory.value = value
+  page.value = 1
+  listings.value = []
+  fetchListings()
+}
+
 // 加载更多
-const loadMore = () => {
-  if (hasMore.value && !loading.value) {
-    fetchListings(true)
+function loadMore() {
+  if (!loading.value) {
+    page.value++
+    fetchListings()
   }
 }
 
-// 跳转到挂售详情
-const goToListingDetail = (listingId) => {
+// 格式化价格
+function formatPrice(price) {
+  return formatPoints(price, 2)
+}
+
+// 跳转到详情页
+function goToDetail(assetId) {
   uni.navigateTo({
-    url: `/pages/asset-detail/index?listingId=${listingId}`
+    url: `/pages/asset-detail/index?id=${assetId}`
   })
 }
 
-// 立即兑换
-const buyNow = (listingId) => {
-  uni.showModal({
-    title: '确认兑换',
-    content: '确认用积分兑换这个藏品吗？',
-    success: (res) => {
-      if (res.confirm) {
-        // TODO: 调用API执行交易
-        uni.showToast({
-          title: '兑换成功',
-          icon: 'success'
-        })
-      }
-    }
+// 显示筛选
+function showFilter() {
+  uni.showToast({
+    title: '筛选功能开发中',
+    icon: 'none'
   })
 }
-
-// 页面加载
-onMounted(() => {
-  fetchListings()
-})
 </script>
 
 <style lang="scss" scoped>
-.page-container {
-  width: 100%;
+.page {
   min-height: 100vh;
-  background-color: #f5f5f5;
-  padding-bottom: 20px;
+  background-color: #F5F5F5;
+  padding-bottom: 140rpx;
 }
 
-// 导航栏
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.navbar-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #000;
-}
-
-.navbar-right {
+.header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16rpx;
+  padding: 24rpx 32rpx;
+  background-color: #FFFFFF;
+  
+  .search-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background-color: #F5F5F5;
+    border-radius: 48rpx;
+    padding: 0 32rpx;
+    height: 72rpx;
+    
+    .search-icon {
+      font-size: 32rpx;
+      margin-right: 16rpx;
+    }
+    
+    .search-input {
+      flex: 1;
+      font-size: 28rpx;
+    }
+  }
+  
+  .filter-btn {
+    width: 72rpx;
+    height: 72rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F5F5F5;
+    border-radius: 50%;
+    
+    .filter-icon {
+      font-size: 36rpx;
+    }
+  }
 }
 
-.filter-toggle {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f0f0f0;
-  border-radius: 50%;
+.section-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #000000;
+  padding: 32rpx 32rpx 24rpx;
+  background-color: #FFFFFF;
 }
 
-// 分类标签
 .category-tabs {
   display: flex;
-  padding: 12px 16px;
-  background-color: #ffffff;
-  gap: 8px;
-  overflow-x: auto;
-  border-bottom: 1px solid #f0f0f0;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.tab-item {
-  padding: 8px 16px;
-  border: 1px solid #e8e8e8;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #666;
+  padding: 0 32rpx 24rpx;
+  background-color: #FFFFFF;
   white-space: nowrap;
-  transition: all 0.3s ease;
-
-  &.active {
-    background-color: #000;
-    color: #fff;
-    border-color: #000;
+  
+  .tab-item {
+    display: inline-block;
+    padding: 12rpx 32rpx;
+    margin-right: 16rpx;
+    background-color: #F5F5F5;
+    border-radius: 48rpx;
+    font-size: 26rpx;
+    color: #666666;
+    transition: all 0.3s ease;
+    
+    &.tab-active {
+      background-color: #000000;
+      color: #FFFFFF;
+      font-weight: 600;
+    }
   }
 }
 
-// 筛选条
-.filter-bar {
-  display: flex;
-  padding: 12px 16px;
-  background-color: #ffffff;
-  gap: 12px;
-  border-bottom: 1px solid #f0f0f0;
+.asset-grid {
+  height: calc(100vh - 400rpx);
+  padding: 24rpx 32rpx;
 }
 
-.filter-item {
+.loading-wrapper,
+.empty-wrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border: 1px solid #e8e8e8;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
+  justify-content: center;
+  padding: 120rpx 0;
+  
+  .loading-text,
+  .empty-text {
+    font-size: 28rpx;
+    color: #999999;
+    margin-top: 24rpx;
+  }
+  
+  .empty-emoji {
+    font-size: 120rpx;
+  }
 }
 
-// 挂售列表
-.listings-grid {
+.grid-wrapper {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  padding: 12px;
-  background-color: #f5f5f5;
+  gap: 24rpx;
 }
 
-.listing-card {
-  background-color: #ffffff;
-  border-radius: 12px;
+.asset-card {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
   overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  position: relative;
-
-  &:active {
-    transform: scale(0.98);
+  
+  .asset-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 300rpx;
+    
+    .asset-image-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .placeholder-emoji {
+        font-size: 80rpx;
+      }
+    }
+    
+    .asset-tag {
+      position: absolute;
+      top: 12rpx;
+      left: 12rpx;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 8rpx;
+      padding: 6rpx 12rpx;
+      
+      .tag-text {
+        font-size: 20rpx;
+        color: #FFFFFF;
+      }
+    }
+    
+    .asset-available {
+      position: absolute;
+      bottom: 12rpx;
+      left: 12rpx;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 8rpx;
+      padding: 6rpx 12rpx;
+      display: flex;
+      align-items: center;
+      gap: 6rpx;
+      
+      .available-icon {
+        font-size: 20rpx;
+      }
+      
+      .available-text {
+        font-size: 20rpx;
+        color: #FFFFFF;
+      }
+    }
+  }
+  
+  .asset-info {
+    padding: 20rpx;
+    
+    .asset-name {
+      font-size: 26rpx;
+      font-weight: 600;
+      color: #000000;
+      margin-bottom: 12rpx;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .asset-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6rpx;
+      margin-bottom: 8rpx;
+      
+      .price-value {
+        font-size: 32rpx;
+        font-weight: 700;
+        color: #000000;
+      }
+      
+      .price-unit {
+        font-size: 22rpx;
+        color: #999999;
+      }
+    }
+    
+    .asset-supply {
+      display: flex;
+      align-items: center;
+      gap: 6rpx;
+      
+      .supply-icon {
+        font-size: 20rpx;
+      }
+      
+      .supply-text {
+        font-size: 22rpx;
+        color: #999999;
+      }
+    }
   }
 }
 
-.listing-image {
-  width: 100%;
-  height: 180px;
-  display: block;
-  background-color: #f0f0f0;
-}
-
-.listing-info {
-  padding: 12px;
-}
-
-.asset-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #000;
-  margin-bottom: 4px;
-}
-
-.serial-number {
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 8px;
-}
-
-.price-section {
-  margin-bottom: 8px;
-}
-
-.price {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.price-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #000;
-}
-
-.price-unit {
-  font-size: 12px;
-  color: #666;
-}
-
-.seller-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.seller-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-}
-
-.seller-name {
-  font-size: 12px;
-  color: #666;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.buy-button {
-  width: 100%;
-  padding: 8px;
-  background-color: #000;
-  color: #fff;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 0 0 12px 12px;
-  cursor: pointer;
-}
-
-// 加载更多
-.load-more {
-  text-align: center;
-  padding: 20px;
-
-  text {
-    color: #3a8fff;
-    font-size: 14px;
-  }
-}
-
-.loading {
-  padding: 20px;
-  text-align: center;
+.number-display {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 </style>

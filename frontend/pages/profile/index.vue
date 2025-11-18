@@ -1,125 +1,98 @@
 <template>
-  <view class="page-container">
-    <!-- 用户信息卡片 -->
+  <view class="page">
+    <!-- 顶部导航 -->
+    <view class="navbar">
+      <view class="nav-actions">
+        <text class="nav-icon" @click="showMore">⋯</text>
+        <text class="nav-icon" @click="scanCode">📷</text>
+      </view>
+    </view>
+
+    <!-- 用户信息卡 -->
     <view class="user-card">
-      <view class="user-header">
-        <image :src="user.avatar_url" class="user-avatar"></image>
+      <view class="user-header" @click="goToProfile">
+        <view class="user-avatar">👤</view>
         <view class="user-info">
-          <view class="user-name">{{ user.phone }}</view>
-          <view class="user-status">
-            <view class="status-badge" v-if="!user.identity_verified">未认证</view>
-            <view class="status-badge verified" v-else>已认证</view>
-            <view class="status-badge" v-if="user.identity_verified">已绑定身份</view>
+          <view class="user-phone">{{ maskPhone(userInfo.phone) }}</view>
+          <view class="user-tags">
+            <view class="tag">{{ userInfo.is_verified ? '已认证' : '未认证' }}</view>
+            <view class="tag">{{ isBoundJingtan ? '已绑定鲸探' : '未绑定鲸探' }}</view>
           </view>
         </view>
-        <uni-icons type="right" size="20" color="#999"></uni-icons>
+        <text class="arrow-icon">→</text>
       </view>
 
-      <!-- 积分余额 -->
-      <view class="points-section">
-        <view class="points-item">
-          <text class="points-label">积分不足？</text>
-          <text class="points-link">来...</text>
+      <!-- 积分卡 -->
+      <view class="points-card">
+        <view class="points-info">
+          <text class="points-label">我的积分</text>
+          <text class="points-value number-display">{{ formatPoints(points) }}</text>
         </view>
-        <view class="task-center">
-          <text>任务中心</text>
-        </view>
-      </view>
-
-      <!-- 用户等级 -->
-      <view class="level-section">
-        <view class="level-badge">
-          <text class="level-text">野生HOHO</text>
-          <text class="level-rank">Lv.1</text>
+        <view class="points-action" @click="goToTasks">
+          <text class="action-text">任务中心</text>
+          <text class="action-icon">→</text>
         </view>
       </view>
     </view>
 
-    <!-- 功能菜单 -->
-    <view class="menu-section">
-      <view class="menu-grid">
-        <view class="menu-item" @click="goToPage('collection')">
-          <view class="menu-icon">
-            <uni-icons type="folder" size="24" color="#333"></uni-icons>
-          </view>
-          <text class="menu-text">作品集</text>
-        </view>
-
-        <view class="menu-item" @click="goToPage('periphery')">
-          <view class="menu-icon">
-            <uni-icons type="compose" size="24" color="#333"></uni-icons>
-          </view>
-          <text class="menu-text">周边</text>
-        </view>
-
-        <view class="menu-item" @click="goToPage('service')">
-          <view class="menu-icon">
-            <uni-icons type="headphones" size="24" color="#333"></uni-icons>
-          </view>
-          <text class="menu-text">客服</text>
-        </view>
-
-        <view class="menu-item" @click="goToPage('settings')">
-          <view class="menu-icon">
-            <uni-icons type="gear" size="24" color="#333"></uni-icons>
-          </view>
-          <text class="menu-text">设置</text>
-        </view>
-
-        <view class="menu-item" @click="goToPage('exchange-record')">
-          <view class="menu-icon">
-            <uni-icons type="circle" size="24" color="#333"></uni-icons>
-          </view>
-          <text class="menu-text">集换记录</text>
-        </view>
-
-        <view class="menu-item" @click="goToPage('community-works')">
-          <view class="menu-icon">
-            <uni-icons type="star" size="24" color="#333"></uni-icons>
-          </view>
-          <text class="menu-text">社区作品</text>
-        </view>
-
-        <view class="menu-item" @click="goToPage('jingtan-works')">
-          <view class="menu-icon">
-            <uni-icons type="diamond" size="24" color="#333"></uni-icons>
-          </view>
-          <text class="menu-text">鲸探作品</text>
-        </view>
-
-        <view class="menu-item" @click="goToPage('waveup-works')">
-          <view class="menu-icon">
-            <image src="../../static/icons/waveup.png" class="waveup-icon"></image>
-          </view>
-          <text class="menu-text">WAVEUP作品</text>
-        </view>
+    <!-- 功能网格（4x2） -->
+    <view class="function-grid">
+      <view class="grid-item" @click="goTo('/pages/my-assets/index')">
+        <text class="grid-icon">🎨</text>
+        <text class="grid-label">作品集</text>
+      </view>
+      <view class="grid-item" @click="goTo('/pages/shop/index')">
+        <text class="grid-icon">🛍️</text>
+        <text class="grid-label">周边</text>
+      </view>
+      <view class="grid-item" @click="goTo('/pages/service/index')">
+        <text class="grid-icon">💬</text>
+        <text class="grid-label">客服</text>
+      </view>
+      <view class="grid-item" @click="goTo('/pages/settings/index')">
+        <text class="grid-icon">⚙️</text>
+        <text class="grid-label">设置</text>
+      </view>
+      <view class="grid-item" @click="goTo('/pages/trade-history/index')">
+        <text class="grid-icon">🔄</text>
+        <text class="grid-label">集换记录</text>
+      </view>
+      <view class="grid-item" @click="goTo('/pages/community-assets/index')">
+        <text class="grid-icon">🌟</text>
+        <text class="grid-label">社区作品</text>
+      </view>
+      <view class="grid-item" @click="goTo('/pages/jingtan-assets/index')">
+        <text class="grid-icon">🐋</text>
+        <text class="grid-label">鲸探作品</text>
+      </view>
+      <view class="grid-item" @click="goTo('/pages/waveup-assets/index')">
+        <text class="grid-icon">🌊</text>
+        <text class="grid-label">WAVEUP作品</text>
       </view>
     </view>
 
-    <!-- 账户信息 -->
-    <view class="account-section">
-      <view class="account-item">
-        <text class="account-label">身份认证</text>
-        <uni-icons type="right" size="20" color="#999"></uni-icons>
+    <!-- 列表项 -->
+    <view class="list-section">
+      <view class="list-item" @click="goTo('/pages/identity-verify/index')">
+        <text class="list-label">身份认证</text>
+        <text class="list-arrow">→</text>
       </view>
-
-      <view class="account-item">
-        <view class="account-left">
-          <text class="account-label">UID</text>
-        </view>
-        <text class="account-value">{{ user.uid }}</text>
+      
+      <view class="list-item">
+        <text class="list-label">UID</text>
+        <text class="list-value">{{ userInfo.id || '-' }}</text>
       </view>
-
-      <view class="account-item">
-        <text class="account-label">第三方关联</text>
-        <uni-icons type="right" size="20" color="#999"></uni-icons>
+      
+      <view class="list-item" @click="goTo('/pages/third-party/index')">
+        <text class="list-label">第三方关联</text>
+        <text class="list-arrow">→</text>
       </view>
     </view>
 
     <!-- 热门活动 -->
     <view class="activity-section">
-      <text class="section-title">热门活动</text>
-      <view class="activity-grid">
+      <view class="section-title">热门活动</view>
+      <view class="activity-cards">
         <view class="activity-card">
           <text class="activity-placeholder">暂时没有更多内容...</text>
         </view>
@@ -128,303 +101,316 @@
         </view>
       </view>
     </view>
+
+    <!-- 底部导航栏 -->
+    <TabBar :active="4" />
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useUserStore } from '../../stores/user'
+import TabBar from '@/components/TabBar/TabBar.vue'
+import request from '@/api/request'
+import { API_ENDPOINTS } from '@/api/config'
+import { maskPhone, formatPoints } from '@/utils/format'
 
-const userStore = useUserStore()
+const userInfo = ref({})
+const points = ref(0)
+const isBoundJingtan = ref(false)
 
-const user = ref({
-  phone: '199****9999',
-  avatar_url: 'https://via.placeholder.com/80x80?text=User',
-  identity_verified: false,
-  uid: '1000000010',
-  nickname: '野生HOHO'
+onMounted(() => {
+  fetchUserInfo()
+  fetchPoints()
+  checkJingtanBinding()
 })
 
 // 获取用户信息
-const fetchUserProfile = async () => {
+async function fetchUserInfo() {
   try {
-    const profile = await userStore.fetchProfile()
-    user.value = profile
+    const res = await request.get(API_ENDPOINTS.USER.PROFILE)
+    userInfo.value = res
   } catch (error) {
-    console.error('Failed to fetch profile:', error)
+    console.error('获取用户信息失败:', error)
   }
 }
 
-// 跳转到页面
-const goToPage = (page) => {
-  const pageMap = {
-    collection: '/pages/profile/collection',
-    periphery: '/pages/profile/periphery',
-    service: '/pages/profile/service',
-    settings: '/pages/profile/settings',
-    'exchange-record': '/pages/profile/exchange-record',
-    'community-works': '/pages/profile/community-works',
-    'jingtan-works': '/pages/profile/jingtan-works',
-    'waveup-works': '/pages/profile/waveup-works'
-  }
-
-  if (pageMap[page]) {
-    uni.navigateTo({
-      url: pageMap[page]
-    })
+// 获取积分余额
+async function fetchPoints() {
+  try {
+    const res = await request.get(API_ENDPOINTS.USER.GET_POINTS)
+    points.value = parseFloat(res.balance || 0)
+  } catch (error) {
+    console.error('获取积分失败:', error)
   }
 }
 
-// 页面加载
-onMounted(() => {
-  // 检查登录状态
-  if (!userStore.isLoggedIn) {
-    uni.navigateTo({
-      url: '/pages/auth/login'
-    })
-    return
+// 检查鲸探绑定状态
+async function checkJingtanBinding() {
+  try {
+    const res = await request.get(API_ENDPOINTS.THIRD_PARTY.LIST)
+    isBoundJingtan.value = res.some(item => item.platform === 'jingtan')
+  } catch (error) {
+    console.error('检查绑定状态失败:', error)
   }
+}
 
-  fetchUserProfile()
-})
+// 跳转
+function goTo(url) {
+  uni.navigateTo({ url })
+}
+
+// 跳转到个人资料
+function goToProfile() {
+  uni.navigateTo({
+    url: '/pages/profile-edit/index'
+  })
+}
+
+// 跳转到任务中心
+function goToTasks() {
+  uni.showToast({
+    title: '任务中心开发中',
+    icon: 'none'
+  })
+}
+
+// 显示更多
+function showMore() {
+  uni.showToast({
+    title: '更多功能开发中',
+    icon: 'none'
+  })
+}
+
+// 扫码
+function scanCode() {
+  uni.scanCode({
+    success: (res) => {
+      console.log('扫码结果:', res)
+    }
+  })
+}
 </script>
 
 <style lang="scss" scoped>
-.page-container {
-  width: 100%;
+.page {
   min-height: 100vh;
-  background-color: #f5f5f5;
-  padding-bottom: 20px;
+  background-color: #F5F5F5;
+  padding-bottom: 140rpx;
 }
 
-// 用户卡片
-.user-card {
-  background-color: #ffffff;
-  padding: 16px;
-  margin: 12px;
-  border-radius: 12px;
-}
-
-.user-header {
+.navbar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  cursor: pointer;
-}
-
-.user-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #000;
-  margin-bottom: 4px;
-}
-
-.user-status {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.status-badge {
-  font-size: 12px;
-  color: #fff;
-  background-color: #999;
-  padding: 2px 8px;
-  border-radius: 4px;
-
-  &.verified {
-    background-color: #52c41a;
+  justify-content: flex-end;
+  height: 88rpx;
+  padding: 0 32rpx;
+  background-color: #FFFFFF;
+  
+  .nav-actions {
+    display: flex;
+    gap: 24rpx;
+    
+    .nav-icon {
+      font-size: 40rpx;
+    }
   }
 }
 
-// 积分部分
-.points-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  margin-bottom: 12px;
+.user-card {
+  background-color: #FFFFFF;
+  margin: 24rpx 32rpx;
+  padding: 32rpx;
+  border-radius: 16rpx;
+  
+  .user-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 32rpx;
+    
+    .user-avatar {
+      width: 96rpx;
+      height: 96rpx;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56rpx;
+      margin-right: 24rpx;
+    }
+    
+    .user-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12rpx;
+      
+      .user-phone {
+        font-size: 32rpx;
+        font-weight: 600;
+        color: #000000;
+      }
+      
+      .user-tags {
+        display: flex;
+        gap: 12rpx;
+        
+        .tag {
+          font-size: 22rpx;
+          color: #999999;
+          background-color: #F5F5F5;
+          padding: 6rpx 12rpx;
+          border-radius: 6rpx;
+        }
+      }
+    }
+    
+    .arrow-icon {
+      font-size: 32rpx;
+      color: #CCCCCC;
+    }
+  }
+  
+  .points-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12rpx;
+    padding: 32rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .points-info {
+      display: flex;
+      flex-direction: column;
+      gap: 12rpx;
+      
+      .points-label {
+        font-size: 24rpx;
+        color: rgba(255, 255, 255, 0.8);
+      }
+      
+      .points-value {
+        font-size: 40rpx;
+        font-weight: 700;
+        color: #FFFFFF;
+      }
+    }
+    
+    .points-action {
+      display: flex;
+      align-items: center;
+      gap: 8rpx;
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 12rpx 24rpx;
+      border-radius: 48rpx;
+      
+      .action-text {
+        font-size: 24rpx;
+        color: #FFFFFF;
+        font-weight: 500;
+      }
+      
+      .action-icon {
+        font-size: 24rpx;
+        color: #FFFFFF;
+      }
+    }
+  }
 }
 
-.points-item {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.points-label {
-  font-size: 14px;
-  color: #666;
-}
-
-.points-link {
-  font-size: 14px;
-  color: #3a8fff;
-  cursor: pointer;
-}
-
-.task-center {
-  padding: 6px 12px;
-  background-color: #000;
-  color: #fff;
-  border-radius: 20px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-// 等级部分
-.level-section {
-  background-color: #f5f5f5;
-  padding: 12px;
-  border-radius: 8px;
-}
-
-.level-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.level-text {
-  font-size: 14px;
-  color: #333;
-}
-
-.level-rank {
-  font-size: 12px;
-  color: #999;
-}
-
-// 菜单部分
-.menu-section {
-  padding: 12px;
-}
-
-.menu-grid {
+.function-grid {
+  background-color: #FFFFFF;
+  margin: 0 32rpx 24rpx;
+  padding: 32rpx;
+  border-radius: 16rpx;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  background-color: #ffffff;
-  padding: 12px;
-  border-radius: 12px;
-}
-
-.menu-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-
-  &:active {
-    transform: scale(0.95);
+  gap: 32rpx 24rpx;
+  
+  .grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12rpx;
+    
+    .grid-icon {
+      font-size: 56rpx;
+    }
+    
+    .grid-label {
+      font-size: 24rpx;
+      color: #666666;
+    }
   }
 }
 
-.menu-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-}
-
-.waveup-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.menu-text {
-  font-size: 12px;
-  color: #333;
-  text-align: center;
-}
-
-// 账户信息
-.account-section {
-  background-color: #ffffff;
-  margin: 12px;
-  border-radius: 12px;
+.list-section {
+  background-color: #FFFFFF;
+  margin: 0 32rpx 24rpx;
+  border-radius: 16rpx;
   overflow: hidden;
-}
-
-.account-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-
-  &:last-child {
-    border-bottom: none;
+  
+  .list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32rpx;
+    border-bottom: 1rpx solid #F0F0F0;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .list-label {
+      font-size: 28rpx;
+      color: #000000;
+    }
+    
+    .list-value {
+      font-size: 28rpx;
+      color: #999999;
+    }
+    
+    .list-arrow {
+      font-size: 32rpx;
+      color: #CCCCCC;
+    }
   }
 }
 
-.account-label {
-  font-size: 14px;
-  color: #333;
-}
-
-.account-left {
-  flex: 1;
-}
-
-.account-value {
-  font-size: 14px;
-  color: #999;
-}
-
-// 活动部分
 .activity-section {
-  padding: 12px;
+  padding: 0 32rpx 32rpx;
+  
+  .section-title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 24rpx;
+  }
+  
+  .activity-cards {
+    display: flex;
+    gap: 24rpx;
+    
+    .activity-card {
+      flex: 1;
+      background-color: #FFFFFF;
+      border-radius: 16rpx;
+      padding: 64rpx 32rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .activity-placeholder {
+        font-size: 24rpx;
+        color: #CCCCCC;
+      }
+    }
+  }
 }
 
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  display: block;
-  margin-bottom: 12px;
-}
-
-.activity-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.activity-card {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-  min-height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.activity-placeholder {
-  font-size: 12px;
-  color: #999;
+.number-display {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 </style>

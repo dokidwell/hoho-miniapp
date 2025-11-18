@@ -29,71 +29,62 @@
       </view>
     </view>
 
-    <!-- 底部导航栏 -->
-    <view class="tabbar safe-area-bottom">
-      <view class="tabbar-item tabbar-active">
-        <image class="tabbar-icon" src="/static/icons/tab-works-active.png" mode="aspectFit" />
-        <text class="tabbar-label">作品</text>
-      </view>
-      <view class="tabbar-item" @click="navigateTo('/pages/create/index')">
-        <image class="tabbar-icon" src="/static/icons/tab-create.png" mode="aspectFit" />
-        <text class="tabbar-label">创作</text>
-      </view>
-      <view class="tabbar-item" @click="navigateTo('/pages/jijhuan/index')">
-        <image class="tabbar-icon" src="/static/icons/tab-exchange.png" mode="aspectFit" />
-        <text class="tabbar-label">集换</text>
-      </view>
-      <view class="tabbar-item" @click="navigateTo('/pages/ecology/index')">
-        <image class="tabbar-icon" src="/static/icons/tab-ecology.png" mode="aspectFit" />
-        <text class="tabbar-label">生态</text>
-      </view>
-      <view class="tabbar-item" @click="navigateTo('/pages/profile/index')">
-        <image class="tabbar-icon" src="/static/icons/tab-profile.png" mode="aspectFit" />
-        <text class="tabbar-label">我的</text>
-      </view>
+    <!-- 加载状态 -->
+    <view v-if="loading" class="loading-wrapper">
+      <text class="loading-text">加载中...</text>
     </view>
+
+    <!-- 空状态 -->
+    <view v-else-if="assets.length === 0" class="empty-wrapper">
+      <text class="empty-emoji">📭</text>
+      <text class="empty-text">暂无藏品</text>
+    </view>
+
+    <!-- 底部导航栏 -->
+    <TabBar :active="0" />
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useAssetStore } from '@/stores/asset'
+import TabBar from '@/components/TabBar/TabBar.vue'
+import request from '@/api/request'
+import { API_ENDPOINTS } from '@/api/config'
 
-const assetStore = useAssetStore()
+const loading = ref(false)
+const assets = ref([])
+const page = ref(1)
+const pageSize = ref(20)
 
-const assets = ref([
-  {
-    id: 1,
-    image_url: '/static/images/asset-1.png',
-    name: '藏品1'
-  },
-  {
-    id: 2,
-    image_url: '/static/images/asset-2.png',
-    name: '藏品2'
-  },
-  {
-    id: 3,
-    image_url: '/static/images/asset-3.png',
-    name: '藏品3'
+onMounted(() => {
+  fetchAssets()
+})
+
+// 获取藏品列表
+async function fetchAssets() {
+  loading.value = true
+  try {
+    const res = await request.get(API_ENDPOINTS.ASSET.LIST, {
+      page: page.value,
+      page_size: pageSize.value,
+      status: 'approved'
+    })
+    assets.value = res.list || []
+  } catch (error) {
+    uni.showToast({
+      title: error.message || '加载失败',
+      icon: 'none'
+    })
+  } finally {
+    loading.value = false
   }
-])
+}
 
 const handleCardClick = (asset) => {
   uni.navigateTo({
     url: `/pages/asset-detail/index?id=${asset.id}`
   })
 }
-
-const navigateTo = (url) => {
-  uni.switchTab({ url })
-}
-
-onMounted(async () => {
-  // TODO: 从API加载藏品列表
-  // const res = await assetStore.fetchAssets()
-  // assets.value = res.list
-})
 </script>
 
 <style lang="scss" scoped>
@@ -175,43 +166,24 @@ onMounted(async () => {
   }
 }
 
-/* 底部导航栏 */
-.tabbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+/* 加载和空状态 */
+.loading-wrapper,
+.empty-wrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-around;
-  height: 120rpx;
-  background-color: var(--color-bg-primary);
-  border-top: 1px solid var(--color-border);
-  z-index: 1000;
+  justify-content: center;
+  padding: 120rpx 0;
   
-  .tabbar-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8rpx;
-    flex: 1;
-    height: 100%;
-    color: var(--color-text-tertiary);
-    
-    .tabbar-icon {
-      width: 48rpx;
-      height: 48rpx;
-    }
-    
-    .tabbar-label {
-      font-size: var(--font-size-xs);
-    }
-    
-    &.tabbar-active {
-      color: var(--color-text-primary);
-      font-weight: 500;
-    }
+  .loading-text,
+  .empty-text {
+    font-size: 28rpx;
+    color: #999999;
+    margin-top: 24rpx;
+  }
+  
+  .empty-emoji {
+    font-size: 120rpx;
   }
 }
 </style>
