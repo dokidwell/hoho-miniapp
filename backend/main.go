@@ -155,11 +155,25 @@ func registerRoutes(router *gin.Engine) {
 		}
 	}
 
-	// 后台管理路由 (待实现)
+	// 初始化管理员服务和处理器
+	adminService := services.NewAdminService()
+	adminHandler := handlers.NewAdminHandler(adminService)
+
+	// 后台管理路由
 	admin := router.Group("/admin")
 	{
-		admin.GET("/dashboard", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Admin dashboard - TODO"})
-		})
+		// 登录路由
+		admin.POST("/login", adminHandler.Login)
+
+		// 需要认证的路由
+		authAdmin := admin.Group("/")
+		authAdmin.Use(middleware.AdminAuthMiddleware())
+		{
+			authAdmin.GET("/profile", adminHandler.GetProfile)
+			authAdmin.GET("/dashboard", func(c *gin.Context) {
+				c.JSON(200, gin.H{"message": "Admin dashboard - TODO"})
+			})
+			// TODO: 用户管理、藏品审核等路由
+		}
 	}
 }
