@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"hoho-miniapp/backend/config"
 	"hoho-miniapp/backend/database"
 	"hoho-miniapp/backend/models"
 	"hoho-miniapp/backend/utils"
@@ -56,10 +57,10 @@ func (s *UserService) Register(phone, password string) (*models.User, string, er
 			return err
 		}
 
-		// 4.2. 初始化用户积分
+		// 4.2. 初始化用户积分（使用配置的初始积分）
 		userPoint := models.UserPoint{
 			UserID: user.ID,
-			Balance: decimal.Zero,
+			Balance: config.AppConfig.InitialPoints,
 			Frozen: decimal.Zero,
 			TotalEarned: decimal.Zero,
 			TotalSpent: decimal.Zero,

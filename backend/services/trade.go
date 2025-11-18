@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hoho-miniapp/backend/config"
 	"hoho-miniapp/backend/database"
 	"hoho-miniapp/backend/models"
 	"time"
@@ -185,10 +186,18 @@ func (s *TradeService) ExecuteTrade(listingID uint64, buyerID uint64) (*models.T
 			return errors.New("买家积分不足")
 		}
 
-		// 6.3. 计算手续费和版税
-		platformFee := listing.Price.Mul(decimal.NewFromFloat(0.025)) // 2.5%
-		creatorRoyalty := listing.Price.Mul(decimal.NewFromFloat(0.025)) // 2.5%
+		// 6.3. 计算手续费和版税（使用银行家舍入法，精确到8位小数）
+		platformFee := listing.Price.Mul(config.AppConfig.PlatformFeeRate).RoundBank(config.AppConfig.DecimalPrecision)
+		creatorRoyalty := listing.Price.Mul(config.AppConfig.CreatorRoyaltyRate).RoundBank(config.AppConfig.DecimalPrecision)
 		sellerReceived := listing.Price.Sub(platformFee).Sub(creatorRoyalty)
+
+		// 验证积分守恒（防止舍入误差导致积分不守恒）
+		totalDistributed := platformFee.Add(creatorRoyalty).Add(sellerReceived)
+		if !totalDistributed.Equal(listing.Price) {
+			// 如果有舍入误差，调整卖家收入（误差通常在0.00000001以内）
+			diff := listing.Price.Sub(totalDistributed)
+			sellerReceived = sellerReceived.Add(diff)
+		}
 
 		// 6.4. 创建Trade记录
 		*trade = models.Trade{

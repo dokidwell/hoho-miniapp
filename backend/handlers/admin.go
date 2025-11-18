@@ -12,11 +12,15 @@ import (
 // AdminHandler 定义管理员相关的HTTP处理函数
 type AdminHandler struct {
 	AdminService *services.AdminService
+	AssetService *services.AssetService
 }
 
 // NewAdminHandler 创建一个新的AdminHandler实例
-func NewAdminHandler(adminService *services.AdminService) *AdminHandler {
-	return &AdminHandler{AdminService: adminService}
+func NewAdminHandler(adminService *services.AdminService, assetService *services.AssetService) *AdminHandler {
+	return &AdminHandler{
+		AdminService: adminService,
+		AssetService: assetService,
+	}
 }
 
 // LoginRequest 定义登录请求体

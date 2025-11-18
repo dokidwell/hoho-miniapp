@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"hoho-miniapp/backend/config"
 	"hoho-miniapp/backend/database"
 	"hoho-miniapp/backend/handlers"
 	"hoho-miniapp/backend/middleware"
@@ -18,6 +19,10 @@ func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Println("No .env file found, using environment variables")
 	}
+
+	// 初始化配置
+	config.InitConfig()
+	fmt.Println("✅ Configuration initialized")
 
 	// 初始化数据库
 	if err := initDatabase(); err != nil {
@@ -159,7 +164,7 @@ func registerRoutes(router *gin.Engine) {
 
 	// 初始化管理员服务和处理器
 	adminService := services.NewAdminService()
-	adminHandler := handlers.NewAdminHandler(adminService)
+	adminHandler := handlers.NewAdminHandler(adminService, assetService)
 
 	// 加载HTML模板
 	router.LoadHTMLGlob("templates/*.html")
