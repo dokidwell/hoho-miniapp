@@ -93,6 +93,11 @@ func registerRoutes(router *gin.Engine) {
 	userHandler := handlers.NewUserHandler(userService)
 	assetService := services.NewAssetService()
 	assetHandler := handlers.NewAssetHandler(assetService)
+	eventService := services.NewEventService()
+	eventHandler := handlers.NewEventHandler(eventService)
+	jingtanService := services.NewJingtanService()
+	jingtanHandler := handlers.NewJingtanHandler(jingtanService)
+	airdropService := services.NewAirdropService()
 
 	// 健康检查
 	router.GET("/health", func(c *gin.Context) {
@@ -141,10 +146,21 @@ func registerRoutes(router *gin.Engine) {
 				// points.GET("/history", pointHandler.GetHistory)
 			}
 
-			// 社区事件公示路由 (待实现)
+						// 社区事件路由
 			events := auth.Group("/events")
 			{
-				// events.GET("", eventHandler.ListEvents)
+				events.GET("", eventHandler.ListEvents)
+				events.GET("/:id", eventHandler.GetEventDetail)
+			}
+
+			// 鲸探API路由
+			jingtan := auth.Group("/jingtan")
+			{
+				jingtan.POST("/bind", jingtanHandler.BindAccount)
+				jingtan.DELETE("/unbind", jingtanHandler.UnbindAccount)
+				jingtan.POST("/sync", jingtanHandler.SyncAssets)
+				jingtan.GET("/assets", jingtanHandler.GetAssets)
+			}
 			}
 		}
 
@@ -164,7 +180,7 @@ func registerRoutes(router *gin.Engine) {
 
 	// 初始化管理员服务和处理器
 	adminService := services.NewAdminService()
-	adminHandler := handlers.NewAdminHandler(adminService, assetService)
+	adminHandler := handlers.NewAdminHandler(adminService, assetService, airdropService)
 
 	// 加载HTML模板
 	router.LoadHTMLGlob("templates/*.html")
@@ -210,6 +226,13 @@ func registerRoutes(router *gin.Engine) {
 			{
 				assetsReview.GET("", adminHandler.ListAssetReviewPage)
 				assetsReview.PUT("/:id", adminHandler.ReviewAsset)
+			}
+
+			// 空投管理路由
+			airdrop := authAdmin.Group("/airdrop")
+			{
+				airdrop.POST("/points", adminHandler.AirdropPoints)
+				airdrop.POST("/asset", adminHandler.AirdropAsset)
 			}
 		}
 	}

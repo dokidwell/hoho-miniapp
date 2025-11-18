@@ -7,19 +7,22 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
 )
 
 // AdminHandler 定义管理员相关的HTTP处理函数
 type AdminHandler struct {
-	AdminService *services.AdminService
-	AssetService *services.AssetService
+	AdminService   *services.AdminService
+	AssetService   *services.AssetService
+	AirdropService *services.AirdropService
 }
 
 // NewAdminHandler 创建一个新的AdminHandler实例
-func NewAdminHandler(adminService *services.AdminService, assetService *services.AssetService) *AdminHandler {
+func NewAdminHandler(adminService *services.AdminService, assetService *services.AssetService, airdropService *services.AirdropService) *AdminHandler {
 	return &AdminHandler{
-		AdminService: adminService,
-		AssetService: assetService,
+		AdminService:   adminService,
+		AssetService:   assetService,
+		AirdropService: airdropService,
 	}
 }
 
@@ -196,4 +199,57 @@ func (h *AdminHandler) ReviewAsset(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "审核操作成功"})
+}
+
+// AirdropPoints 处理空投积分请求
+func (h *AdminHandler) AirdropPoints(c *gin.Context) {
+	var req struct {
+		UserID uint64  `json:"user_id" binding:"required"`
+		Amount string  `json:"amount" binding:"required"`
+		Reason string  `json:"reason" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误", "details": err.Error()})
+		return
+	}
+
+	amount, err := decimal.NewFromString(req.Amount)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "金额格式错误"})
+		return
+	}
+
+	if err := h.AirdropService.AirdropPoints(req.UserID, amount, req.Reason); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "空投失败", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "空投成功"})
+}
+
+// AirdropAsset 处理空投藏品请求
+func (h *AdminHandler) AirdropAsset(c *gin.Context) {
+	var req struct {
+		AssetID      uint64 `json:"asset_id" binding:"required"`
+		TargetUserID uint64 `json:"target_user_id" binding:"required"`
+		Count        int    `json:"count" binding:"required,min=1"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误", "details": err.Error()})
+		return
+	}
+
+	instances, err := h.AirdropService.AirdropAsset(req.AssetID, req.TargetUserID, req.Count)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "空投失败", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"message": "空投成功",
+		"data": instances,
+	})
 }
