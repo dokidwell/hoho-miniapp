@@ -124,3 +124,94 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 		"data": user,
 	})
 }
+
+// UpdateProfileRequest 定义更新资料请求体
+type UpdateProfileRequest struct {
+	Nickname  *string `json:"nickname"`
+	AvatarURL *string `json:"avatar_url"`
+}
+
+// UpdateProfile 处理更新用户资料请求
+func (h *UserHandler) UpdateProfile(c *gin.Context) {
+	var req UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误", "details": err.Error()})
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+	updates := make(map[string]interface{})
+
+	if req.Nickname != nil {
+		updates["nickname"] = *req.Nickname
+	}
+	if req.AvatarURL != nil {
+		updates["avatar_url"] = *req.AvatarURL
+	}
+
+	user, err := h.UserService.UpdateProfile(userID.(uint64), updates)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "更新失败", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"message": "更新成功",
+		"data": user,
+	})
+}
+
+// VerifyIdentityRequest 定义实名认证请求体
+type VerifyIdentityRequest struct {
+	RealName string `json:"real_name" binding:"required"`
+	IDNumber string `json:"id_number" binding:"required"`
+}
+
+// VerifyIdentity 处理实名认证请求
+func (h *UserHandler) VerifyIdentity(c *gin.Context) {
+	var req VerifyIdentityRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误", "details": err.Error()})
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+
+	user, err := h.UserService.VerifyIdentity(userID.(uint64), req.RealName, req.IDNumber)
+	if err != nil {
+		if err.Error() == "用户已完成实名认证" {
+			c.JSON(http.StatusConflict, gin.H{"code": 409, "message": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "实名认证失败", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"message": "实名认证成功",
+		"data": gin.H{
+			"id": user.ID,
+			"real_name": user.RealName,
+			"identity_verified": user.IdentityVerified,
+		},
+	})
+}
+
+// GetPoints 处理获取用户积分请求
+func (h *UserHandler) GetPoints(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+
+	points, err := h.UserService.GetUserPoints(userID.(uint64))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "获取积分失败", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"message": "success",
+		"data": points,
+	})
+}

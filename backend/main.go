@@ -111,9 +111,9 @@ func registerRoutes(router *gin.Engine) {
 		{
 			// 用户相关路由
 			auth.GET("/users/profile", userHandler.GetProfile)
-			// auth.PUT("/users/profile", userHandler.UpdateProfile)
-			// auth.POST("/users/verify-identity", userHandler.VerifyIdentity)
-			// auth.GET("/users/points", userHandler.GetPoints)
+			auth.PUT("/users/profile", userHandler.UpdateProfile)
+			auth.POST("/users/verify-identity", userHandler.VerifyIdentity)
+			auth.GET("/users/points", userHandler.GetPoints)
 
 			// 藏品相关路由 (待实现)
 			assets := auth.Group("/assets")

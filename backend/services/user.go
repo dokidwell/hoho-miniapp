@@ -124,6 +124,69 @@ func (s *UserService) GetUserByID(id uint64) (*models.User, error) {
 	return &user, result.Error
 }
 
+// UpdateProfile 更新用户资料
+func (s *UserService) UpdateProfile(userID uint64, updates map[string]interface{}) (*models.User, error) {
+	var user models.User
+	result := database.DB.First(&user, userID)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, errors.New("用户不存在")
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if err := database.DB.Model(&user).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// VerifyIdentity 实名认证
+func (s *UserService) VerifyIdentity(userID uint64, realName, idNumber string) (*models.User, error) {
+	var user models.User
+	result := database.DB.First(&user, userID)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, errors.New("用户不存在")
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if user.IdentityVerified {
+		return nil, errors.New("用户已完成实名认证")
+	}
+
+	// TODO: 实际项目中需要调用第三方接口进行身份验证
+	// 暂时模拟验证成功
+
+	updates := map[string]interface{}{
+		"real_name": realName,
+		"id_number": idNumber,
+		"identity_verified": true,
+	}
+
+	if err := database.DB.Model(&user).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	// 重新查询以获取更新后的数据
+	database.DB.First(&user, userID)
+
+	return &user, nil
+}
+
+// GetUserPoints 获取用户积分
+func (s *UserService) GetUserPoints(userID uint64) (*models.UserPoint, error) {
+	var points models.UserPoint
+	result := database.DB.Where("user_id = ?", userID).First(&points)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// 理论上不会发生，因为注册时会创建
+		return nil, errors.New("用户积分记录不存在")
+	}
+	return &points, result.Error
+}
+
 // GenerateToken 生成JWT Token
 func (s *UserService) GenerateToken(userID uint64) (string, error) {
 	// 从环境变量获取密钥和过期时间
