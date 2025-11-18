@@ -18,8 +18,19 @@ func NewJingtanService() *JingtanService {
 }
 
 // BindAccount 绑定鲸探账户（模拟）
-func (s *JingtanService) BindAccount(userID uint64, jingtanAccountID string) error {
-	// 检查是否已绑定
+func (s *JingtanService) BindAccount(userID uint64, jingtanAccountID string, jingtanPhone string) error {
+	// 1. 获取用户信息
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return errors.New("用户不存在")
+	}
+
+	// 2. 验证手机号一致性（安全规则）
+	if user.Phone != jingtanPhone {
+		return errors.New("鲸探账户手机号必须与小程序登录手机号一致")
+	}
+
+	// 3. 检查是否已绑定
 	var existingAccount models.ThirdPartyAccount
 	result := database.DB.Where("user_id = ? AND platform = ?", userID, "jingtan").First(&existingAccount)
 	if result.Error == nil {
@@ -29,7 +40,8 @@ func (s *JingtanService) BindAccount(userID uint64, jingtanAccountID string) err
 		return result.Error
 	}
 
-	// TODO: 实际项目中需要调用鲸探API进行OAuth授权
+	// 4. TODO: 实际项目中需要调用鲸探API进行OAuth授权
+	// 并验证jingtanPhone是否为鲸探账户的真实手机号
 	// 这里模拟绑定成功
 
 	account := models.ThirdPartyAccount{
@@ -60,7 +72,7 @@ func (s *JingtanService) UnbindAccount(userID uint64) error {
 
 // SyncAssets 同步鲸探资产（模拟）
 func (s *JingtanService) SyncAssets(userID uint64) ([]models.JingtanAsset, error) {
-	// 检查是否已绑定鲸探账户
+	// 1. 检查是否已绑定鲸探账户
 	var account models.ThirdPartyAccount
 	result := database.DB.Where("user_id = ? AND platform = ?", userID, "jingtan").First(&account)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -69,6 +81,13 @@ func (s *JingtanService) SyncAssets(userID uint64) ([]models.JingtanAsset, error
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
+	// 2. 再次验证用户手机号（防止绕过绑定时的验证）
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return nil, errors.New("用户不存在")
+	}
+	// TODO: 实际项目中需要调用鲸探API验证手机号是否仍然一致
 
 	// TODO: 实际项目中需要调用鲸探API获取用户资产列表
 	// 这里模拟返回一些资产

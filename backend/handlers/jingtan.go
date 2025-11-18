@@ -23,6 +23,7 @@ func (h *JingtanHandler) BindAccount(c *gin.Context) {
 
 	var req struct {
 		JingtanAccountID string `json:"jingtan_account_id" binding:"required"`
+		JingtanPhone     string `json:"jingtan_phone" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -30,7 +31,7 @@ func (h *JingtanHandler) BindAccount(c *gin.Context) {
 		return
 	}
 
-	if err := h.JingtanService.BindAccount(userID.(uint64), req.JingtanAccountID); err != nil {
+	if err := h.JingtanService.BindAccount(userID.(uint64), req.JingtanAccountID, req.JingtanPhone); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "绑定失败", "details": err.Error()})
 		return
 	}
