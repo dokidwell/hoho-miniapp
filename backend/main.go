@@ -160,7 +160,7 @@ func registerRoutes(router *gin.Engine) {
 	adminHandler := handlers.NewAdminHandler(adminService)
 
 	// 加载HTML模板
-	router.LoadHTMLGlob("templates/*")
+	router.LoadHTMLGlob("templates/*.html")
 
 	// 后台管理路由
 	admin := router.Group("/admin")
@@ -178,7 +178,16 @@ func registerRoutes(router *gin.Engine) {
 		{
 			authAdmin.GET("/profile", adminHandler.GetProfile)
 			authAdmin.GET("/dashboard", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Admin dashboard - TODO"})
+				// 模拟数据
+				data := gin.H{
+					"Title": "仪表盘",
+					"ActiveMenu": "dashboard",
+					"TotalUsers": 1234,
+					"TotalAssets": 567,
+					"PendingReviews": 12,
+					"TodayTradeVolume": "12,345.67890123",
+				}
+				c.HTML(http.StatusOK, "admin_dashboard.html", data)
 			})
 			// TODO: 用户管理、藏品审核等路由
 		}
