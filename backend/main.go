@@ -159,10 +159,17 @@ func registerRoutes(router *gin.Engine) {
 	adminService := services.NewAdminService()
 	adminHandler := handlers.NewAdminHandler(adminService)
 
+	// 加载HTML模板
+	router.LoadHTMLGlob("templates/*")
+
 	// 后台管理路由
 	admin := router.Group("/admin")
 	{
-		// 登录路由
+		// 登录页面
+		admin.GET("/login", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "admin_login.html", gin.H{})
+		})
+		// 登录API
 		admin.POST("/login", adminHandler.Login)
 
 		// 需要认证的路由
