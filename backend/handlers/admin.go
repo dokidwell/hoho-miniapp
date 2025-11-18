@@ -152,3 +152,44 @@ func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "更新成功"})
 }
+
+// ListAssetReviewPage 处理藏品审核列表页面请求
+func (h *AdminHandler) ListAssetReviewPage(c *gin.Context) {
+	assets, err := h.AssetService.GetPendingReviewAssets()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "获取待审核藏品列表失败: "+err.Error())
+		return
+	}
+
+	c.HTML(http.StatusOK, "admin_asset_review.html", gin.H{
+		"Title": "铸造审核",
+		"ActiveMenu": "review",
+		"Assets": assets,
+	})
+}
+
+// ReviewAsset 处理藏品审核请求
+func (h *AdminHandler) ReviewAsset(c *gin.Context) {
+	assetIDStr := c.Param("id")
+	assetID, err := strconv.ParseUint(assetIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "藏品ID格式错误"})
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required,oneof=approved rejected"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误", "details": err.Error()})
+		return
+	}
+
+	_, err = h.AssetService.ReviewMintRequest(assetID, req.Status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "审核操作失败", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "审核操作成功"})
+}

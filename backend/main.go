@@ -199,7 +199,13 @@ func registerRoutes(router *gin.Engine) {
 				// users.GET("/:id", adminHandler.GetUserDetailPage) // 用户详情页
 				users.PUT("/:id/status", adminHandler.UpdateUserStatus) // 禁用/解禁 API
 			}
-			// TODO: 藏品审核等路由
+
+			// 藏品审核路由
+			assetsReview := authAdmin.Group("/review/assets")
+			{
+				assetsReview.GET("", adminHandler.ListAssetReviewPage)
+				assetsReview.PUT("/:id", adminHandler.ReviewAsset)
+			}
 		}
 	}
 }
