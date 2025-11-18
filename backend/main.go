@@ -7,6 +7,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"hoho-miniapp/backend/database"
+	"hoho-miniapp/backend/handlers"
+	"hoho-miniapp/backend/middleware"
+	"hoho-miniapp/backend/services"
 )
 
 func main() {
@@ -48,15 +52,11 @@ func main() {
 }
 
 func initDatabase() error {
-	// TODO: 实现数据库初始化
-	fmt.Println("✓ Database initialized")
-	return nil
+	return database.InitDatabase()
 }
 
 func initRedis() error {
-	// TODO: 实现Redis初始化
-	fmt.Println("✓ Redis initialized")
-	return nil
+	return database.InitRedis()
 }
 
 func corsMiddleware() gin.HandlerFunc {
@@ -83,6 +83,10 @@ func loggerMiddleware() gin.HandlerFunc {
 }
 
 func registerRoutes(router *gin.Engine) {
+	// 初始化服务和处理器
+	userService := services.NewUserService()
+	userHandler := handlers.NewUserHandler(userService)
+
 	// 健康检查
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -94,62 +98,60 @@ func registerRoutes(router *gin.Engine) {
 	// API v1 路由组
 	v1 := router.Group("/api/v1")
 	{
-		// 用户相关路由 (待实现)
+		// 用户相关路由 (无需认证)
 		users := v1.Group("/users")
 		{
-			users.POST("/register", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Register endpoint - TODO"})
-			})
-			users.POST("/login", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Login endpoint - TODO"})
-			})
-			users.GET("/profile", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Profile endpoint - TODO"})
-			})
+			users.POST("/register", userHandler.Register)
+			users.POST("/login", userHandler.Login)
 		}
 
-		// 藏品相关路由 (待实现)
-		assets := v1.Group("/assets")
+		// 需要认证的路由
+		auth := v1.Group("/")
+		auth.Use(middleware.AuthMiddleware())
 		{
-			assets.GET("", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "List assets - TODO"})
-			})
-			assets.POST("", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Create asset - TODO"})
-			})
-			assets.GET("/:id", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Get asset - TODO"})
-			})
+			// 用户相关路由
+			auth.GET("/users/profile", userHandler.GetProfile)
+			// auth.PUT("/users/profile", userHandler.UpdateProfile)
+			// auth.POST("/users/verify-identity", userHandler.VerifyIdentity)
+			// auth.GET("/users/points", userHandler.GetPoints)
+
+			// 藏品相关路由 (待实现)
+			assets := auth.Group("/assets")
+			{
+				// assets.POST("", assetHandler.CreateAsset)
+			}
+
+			// 交易相关路由 (待实现)
+			trades := auth.Group("/trades")
+			{
+				// trades.POST("/execute", tradeHandler.ExecuteTrade)
+			}
+
+			// 积分相关路由 (待实现)
+			points := auth.Group("/points")
+			{
+				// points.GET("/balance", pointHandler.GetBalance)
+				// points.GET("/history", pointHandler.GetHistory)
+			}
+
+			// 社区事件公示路由 (待实现)
+			events := auth.Group("/events")
+			{
+				// events.GET("", eventHandler.ListEvents)
+			}
 		}
 
-		// 交易相关路由 (待实现)
-		trades := v1.Group("/trades")
+		// 公开的藏品路由
+		assetsPublic := v1.Group("/assets")
 		{
-			trades.GET("", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "List trades - TODO"})
-			})
-			trades.POST("", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Create trade - TODO"})
-			})
+			// assetsPublic.GET("", assetHandler.ListAssets)
+			// assetsPublic.GET("/:id", assetHandler.GetAssetDetail)
 		}
 
-		// 积分相关路由 (待实现)
-		points := v1.Group("/points")
+		// 公开的集换路由
+		listingsPublic := v1.Group("/listings")
 		{
-			points.GET("/balance", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Get balance - TODO"})
-			})
-			points.GET("/history", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "Get history - TODO"})
-			})
-		}
-
-		// 社区事件公示路由 (待实现)
-		events := v1.Group("/events")
-		{
-			events.GET("", func(c *gin.Context) {
-				c.JSON(200, gin.H{"message": "List events - TODO"})
-			})
+			// listingsPublic.GET("", listingHandler.ListListings)
 		}
 	}
 
