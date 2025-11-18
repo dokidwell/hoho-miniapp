@@ -4,7 +4,7 @@
     <view class="logo-section">
       <view class="logo">🎨</view>
       <text class="app-name">HOHO Park</text>
-      <text class="app-slogan">数字藏品集换平台</text>
+      <text class="app-slogan">数字作品集换平台</text>
     </view>
 
     <!-- 登录表单 -->

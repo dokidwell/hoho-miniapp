@@ -16,7 +16,7 @@
 
     <!-- 兑换内容 -->
     <view v-else-if="listingInfo" class="content">
-      <!-- 藏品预览 -->
+      <!-- 作品预览 -->
       <view class="asset-preview">
         <view class="asset-image">
           <text class="asset-emoji">🖼️</text>
@@ -119,7 +119,7 @@ async function fetchMyPoints() {
 function confirmExchange() {
   uni.showModal({
     title: '确认兑换',
-    content: `确认用 ${listingInfo.value.price} 积分兑换这个藏品吗？`,
+    content: `确认用 ${listingInfo.value.price} 积分兑换这个作品吗？`,
     success: async (res) => {
       if (res.confirm) {
         await executeExchange()
@@ -138,7 +138,7 @@ async function executeExchange() {
     
     uni.showModal({
       title: '兑换成功',
-      content: '恭喜您成功兑换藏品！',
+      content: '恭喜您成功兑换作品！',
       showCancel: false,
       success: () => {
         uni.navigateBack()

@@ -67,8 +67,8 @@
     <view class="bind-notice">
       <view class="notice-title">📌 绑定说明</view>
       <view class="notice-content">
-        <text class="notice-text">1. 绑定第三方账户后，可以查看您在该平台的藏品</text>
-        <text class="notice-text">2. 第三方藏品仅供展示，不可在本平台交易</text>
+        <text class="notice-text">1. 绑定第三方账户后，可以查看您在该平台的作品</text>
+        <text class="notice-text">2. 第三方作品仅供展示，不可在本平台交易</text>
         <text class="notice-text">3. 绑定的手机号必须与小程序登录手机号一致</text>
       </view>
     </view>

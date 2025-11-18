@@ -26,17 +26,17 @@
       </view>
     </scroll-view>
 
-    <!-- 藏品网格（2列） -->
+    <!-- 作品网格（2列） -->
     <scroll-view class="asset-grid" scroll-y @scrolltolower="loadMore">
       <!-- 加载中 -->
       <view v-if="loading && listings.length === 0" class="loading-wrapper">
         <text class="loading-text">加载中...</text>
       </view>
 
-      <!-- 藏品列表 -->
+      <!-- 作品列表 -->
       <view v-else-if="listings.length > 0" class="grid-wrapper">
         <view v-for="item in listings" :key="item.id" class="asset-card" @click="goToDetail(item.asset.id)">
-          <!-- 藏品图片 -->
+          <!-- 作品图片 -->
           <view class="asset-image-wrapper">
             <view class="asset-image-placeholder">
               <text class="placeholder-emoji">🖼️</text>
@@ -54,7 +54,7 @@
             </view>
           </view>
 
-          <!-- 藏品信息 -->
+          <!-- 作品信息 -->
           <view class="asset-info">
             <view class="asset-name">{{ item.asset.name }}</view>
             <view class="asset-price-row">
@@ -72,7 +72,7 @@
       <!-- 空状态 -->
       <view v-else class="empty-wrapper">
         <text class="empty-emoji">📭</text>
-        <text class="empty-text">暂无挂售藏品</text>
+        <text class="empty-text">暂无挂售作品</text>
       </view>
     </scroll-view>
 

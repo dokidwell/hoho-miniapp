@@ -10,7 +10,7 @@
       <view class="banner-text">欢迎来到HOHO Park!</view>
     </view>
 
-    <!-- 藏品卡片列表 -->
+    <!-- 作品卡片列表 -->
     <view class="cards-section">
       <view 
         v-for="(asset, index) in assets" 
@@ -37,7 +37,7 @@
     <!-- 空状态 -->
     <view v-else-if="assets.length === 0" class="empty-wrapper">
       <text class="empty-emoji">📭</text>
-      <text class="empty-text">暂无藏品</text>
+      <text class="empty-text">暂无作品</text>
     </view>
 
     <!-- 底部导航栏 -->
@@ -60,7 +60,7 @@ onMounted(() => {
   fetchAssets()
 })
 
-// 获取藏品列表
+// 获取作品列表
 async function fetchAssets() {
   loading.value = true
   try {
@@ -120,7 +120,7 @@ const handleCardClick = (asset) => {
   }
 }
 
-/* 藏品卡片列表 */
+/* 作品卡片列表 */
 .cards-section {
   padding: var(--spacing-lg);
   display: flex;

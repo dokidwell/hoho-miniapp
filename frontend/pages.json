@@ -52,7 +52,7 @@
     {
       "path": "pages/asset-detail/index",
       "style": {
-        "navigationBarTitleText": "藏品详情",
+        "navigationBarTitleText": "作品详情",
         "navigationStyle": "custom"
       }
     },
@@ -88,6 +88,125 @@
       "path": "pages/jingtan-assets/index",
       "style": {
         "navigationBarTitleText": "鲸探作品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/my-assets/index",
+      "style": {
+        "navigationBarTitleText": "我的作品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/trade-history/index",
+      "style": {
+        "navigationBarTitleText": "集换记录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/agreement/index",
+      "style": {
+        "navigationBarTitleText": "用户协议",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/messages/index",
+      "style": {
+        "navigationBarTitleText": "消息中心",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "设置",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/address-list/index",
+      "style": {
+        "navigationBarTitleText": "收货地址",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/address-edit/index",
+      "style": {
+        "navigationBarTitleText": "编辑地址",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/region-picker/index",
+      "style": {
+        "navigationBarTitleText": "选择地区",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/whitepaper/index",
+      "style": {
+        "navigationBarTitleText": "白皮书",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/exchange-success/index",
+      "style": {
+        "navigationBarTitleText": "兑换成功",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/cart/index",
+      "style": {
+        "navigationBarTitleText": "购物车",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/community-assets/index",
+      "style": {
+        "navigationBarTitleText": "社区作品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/waveup-assets/index",
+      "style": {
+        "navigationBarTitleText": "Waveup作品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/derivative-assets/index",
+      "style": {
+        "navigationBarTitleText": "衍生作品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/collection-assets/index",
+      "style": {
+        "navigationBarTitleText": "合集作品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/share/index",
+      "style": {
+        "navigationBarTitleText": "分享",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile-edit/index",
+      "style": {
+        "navigationBarTitleText": "编辑资料",
         "navigationStyle": "custom"
       }
     }
@@ -134,10 +253,10 @@
       "desc": "你的位置信息将用于完善用户体验"
     },
     "scope.camera": {
-      "desc": "拍摄照片和视频用于创作藏品"
+      "desc": "拍摄照片和视频用于创作作品"
     },
     "scope.record": {
-      "desc": "录制音频用于创作藏品"
+      "desc": "录制音频用于创作作品"
     }
   },
   "uniIdRouter": {}

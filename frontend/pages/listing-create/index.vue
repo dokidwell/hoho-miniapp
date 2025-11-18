@@ -9,13 +9,13 @@
       <view class="placeholder"></view>
     </view>
 
-    <!-- 藏品预览 -->
+    <!-- 作品预览 -->
     <view class="asset-preview">
       <view class="asset-image">
         <text class="asset-emoji">🖼️</text>
       </view>
       <view class="asset-info">
-        <text class="asset-name">{{ assetInfo.name || '藏品名称' }}</text>
+        <text class="asset-name">{{ assetInfo.name || '作品名称' }}</text>
         <text class="asset-serial" v-if="assetInfo.serial_number">#{{ assetInfo.serial_number }}</text>
       </view>
     </view>
@@ -89,13 +89,13 @@ onMounted(() => {
   }
 })
 
-// 获取藏品信息
+// 获取作品信息
 async function fetchAssetInfo() {
   try {
     const res = await request.get(API_ENDPOINTS.ASSET.GET_DETAIL(assetId.value))
     assetInfo.value = res
   } catch (error) {
-    console.error('获取藏品信息失败:', error)
+    console.error('获取作品信息失败:', error)
   }
 }
 

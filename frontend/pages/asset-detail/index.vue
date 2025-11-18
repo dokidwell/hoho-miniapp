@@ -15,16 +15,16 @@
       <text class="loading-text">加载中...</text>
     </view>
 
-    <!-- 藏品内容 -->
+    <!-- 作品内容 -->
     <view v-else-if="assetDetail" class="content">
-      <!-- 藏品图片 -->
+      <!-- 作品图片 -->
       <view class="asset-image-section">
         <view class="asset-image-placeholder">
           <text class="placeholder-emoji">🖼️</text>
         </view>
       </view>
 
-      <!-- 藏品信息 -->
+      <!-- 作品信息 -->
       <view class="asset-info-section">
         <view class="asset-header">
           <text class="asset-name">{{ assetDetail.name }}</text>
@@ -104,7 +104,7 @@ onMounted(() => {
   }
 })
 
-// 获取藏品详情
+// 获取作品详情
 async function fetchAssetDetail() {
   loading.value = true
   try {

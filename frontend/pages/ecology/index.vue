@@ -68,7 +68,7 @@
     <view class="ad-section">
       <view class="ad-content">
         <text class="ad-icon">📢</text>
-        <text class="ad-text">欢迎来到HOHO Park数字藏品集换平台</text>
+        <text class="ad-text">欢迎来到HOHO Park数字作品集换平台</text>
       </view>
     </view>
 
