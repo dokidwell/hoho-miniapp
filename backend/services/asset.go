@@ -161,3 +161,60 @@ func (s *AssetService) GetAssetByID(assetID uint64) (*models.Asset, error) {
 	}
 	return &asset, err
 }
+
+// GetUserAssetInstances 获取用户的作品实例列表
+func (s *AssetService) GetUserAssetInstances(userID uint64, page, pageSize int, status string) ([]map[string]interface{}, int64, error) {
+	var instances []models.AssetInstance
+	var total int64
+
+	// 构建查询
+	query := database.DB.Model(&models.AssetInstance{}).Where("owner_id = ?", userID)
+
+	// 如果指定了状态，添加状态筛选
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	// 获取总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 分页查询
+	offset := (page - 1) * pageSize
+	if err := query.Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&instances).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 组装返回数据，包含作品详情
+	result := make([]map[string]interface{}, 0, len(instances))
+	for _, instance := range instances {
+		var asset models.Asset
+		if err := database.DB.First(&asset, instance.AssetID).Error; err != nil {
+			continue
+		}
+
+		// 检查是否已挂售
+		var listing models.Listing
+		isListed := false
+		if err := database.DB.Where("asset_instance_id = ? AND status = ?", instance.ID, "active").First(&listing).Error; err == nil {
+			isListed = true
+		}
+
+		item := map[string]interface{}{
+			"id":            instance.ID,
+			"asset_id":      asset.ID,
+			"name":          asset.Name,
+			"description":   asset.Description,
+			"image_url":     asset.MediaURL,
+			"serial_number": instance.SerialNumber,
+			"status":        instance.Status,
+			"is_listed":     isListed,
+			"created_at":    instance.CreatedAt,
+		}
+
+		result = append(result, item)
+	}
+
+	return result, total, nil
+}

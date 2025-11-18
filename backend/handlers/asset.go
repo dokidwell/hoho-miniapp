@@ -76,3 +76,49 @@ func (h *AssetHandler) GetAssetDetail(c *gin.Context) {
 		"data":    asset,
 	})
 }
+
+// GetMyAssets 获取我的作品集
+func (h *AssetHandler) GetMyAssets(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code":    401,
+			"message": "未登录",
+		})
+		return
+	}
+
+	// 获取查询参数
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+	status := c.Query("status") // 可选: "in_wallet", "on_sale", "pending_trade"
+
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+
+	// 调用service获取用户的作品实例
+	instances, total, err := h.AssetService.GetUserAssetInstances(userID.(uint64), page, pageSize, status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "获取作品集失败",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"list":      instances,
+			"total":     total,
+			"page":      page,
+			"page_size": pageSize,
+		},
+	})
+}

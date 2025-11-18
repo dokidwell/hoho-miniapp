@@ -34,6 +34,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id) => `/assets/${id}`,
     DELETE: (id) => `/assets/${id}`,
     GET_INSTANCES: (id) => `/assets/${id}/instances`,
+    MY_ASSETS: '/my/assets',
     GET_JINGTAN: '/assets/jingtan',
     SYNC_JINGTAN: '/assets/jingtan/sync'
   },

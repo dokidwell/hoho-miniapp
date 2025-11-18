@@ -99,6 +99,7 @@ func registerRoutes(router *gin.Engine) {
 	jingtanHandler := handlers.NewJingtanHandler(jingtanService)
 	tradeService := services.NewTradeService()
 	tradeHandler := handlers.NewTradeHandler(tradeService)
+	uploadHandler := handlers.NewUploadHandler()
 	airdropService := services.NewAirdropService()
 
 	// 健康检查
@@ -150,10 +151,19 @@ func registerRoutes(router *gin.Engine) {
 				listings.DELETE("/:id", tradeHandler.CancelListing)
 			}
 
-			// 我的挂售
+			// 我的相关
 			my := auth.Group("/my")
 			{
 				my.GET("/listings", tradeHandler.GetMyListings)
+				my.GET("/assets", assetHandler.GetMyAssets)
+			}
+
+			// 上传相关
+			upload := auth.Group("/upload")
+			{
+				upload.POST("", uploadHandler.UploadFile)
+				upload.GET("/cos-credentials", uploadHandler.GetCOSCredentials)
+				upload.GET("/oss-credentials", uploadHandler.GetOSSCredentials)
 			}
 
 			// 积分相关路由 (待实现)
