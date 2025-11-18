@@ -189,7 +189,15 @@ func registerRoutes(router *gin.Engine) {
 				}
 				c.HTML(http.StatusOK, "admin_dashboard.html", data)
 			})
-			// TODO: 用户管理、藏品审核等路由
+
+			// 用户管理路由
+			users := authAdmin.Group("/users")
+			{
+				users.GET("", adminHandler.ListUsersPage)
+				// users.GET("/:id", adminHandler.GetUserDetailPage) // 用户详情页
+				users.PUT("/:id/status", adminHandler.UpdateUserStatus) // 禁用/解禁 API
+			}
+			// TODO: 藏品审核等路由
 		}
 	}
 }

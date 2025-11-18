@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"hoho-miniapp/backend/services"
+	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -77,4 +79,76 @@ func (h *AdminHandler) GetProfile(c *gin.Context) {
 		"message": "success",
 		"data": admin,
 	})
+}
+
+// ListUsersPage 处理用户列表页面请求
+func (h *AdminHandler) ListUsersPage(c *gin.Context) {
+	page := c.DefaultQuery("page", "1")
+	pageSize := 20
+	search := c.DefaultQuery("search", "")
+
+	pageNum := 1
+	if p, err := strconv.Atoi(page); err == nil && p > 0 {
+		pageNum = p
+	}
+
+	users, total, err := h.AdminService.GetUsersPaginated(pageNum, pageSize, search)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "获取用户列表失败: "+err.Error())
+		return
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+	
+	// 简化分页导航，只显示当前页前后2页
+	startPage := pageNum - 2
+	if startPage < 1 {
+		startPage = 1
+	}
+	endPage := pageNum + 2
+	if endPage > totalPages {
+		endPage = totalPages
+	}
+
+	var pages []int
+	for i := startPage; i <= endPage; i++ {
+		pages = append(pages, i)
+	}
+
+	c.HTML(http.StatusOK, "admin_users.html", gin.H{
+		"Title": "用户管理",
+		"ActiveMenu": "users",
+		"Users": users,
+		"Total": total,
+		"Page": pageNum,
+		"PageSize": pageSize,
+		"TotalPages": totalPages,
+		"Search": search,
+		"Pages": pages,
+	})
+}
+
+// UpdateUserStatus 处理更新用户状态请求
+func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
+	userIDStr := c.Param("id")
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "用户ID格式错误"})
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required,oneof=active suspended banned"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误", "details": err.Error()})
+		return
+	}
+
+	if err := h.AdminService.UpdateUserStatus(userID, req.Status); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "更新用户状态失败", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "更新成功"})
 }

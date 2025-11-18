@@ -63,6 +63,60 @@ func (s *AdminService) GetAdminByID(id uint64) (*models.Admin, error) {
 	return &admin, result.Error
 }
 
+// GetUsersPaginated 获取分页用户列表
+func (s *AdminService) GetUsersPaginated(page, pageSize int, search string) ([]models.User, int64, error) {
+	var users []models.User
+	var total int64
+	query := database.DB.Model(&models.User{})
+
+	if search != "" {
+		// 模糊搜索UID或手机号
+		query = query.Where("uid LIKE ? OR phone LIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+
+	// 统计总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 分页查询
+	offset := (page - 1) * pageSize
+	if err := query.Limit(pageSize).Offset(offset).Order("id desc").Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
+}
+
+// GetUserDetail 获取用户详情，包括积分
+func (s *AdminService) GetUserDetail(userID uint64) (*models.User, *models.UserPoint, error) {
+	var user models.User
+	result := database.DB.First(&user, userID)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil, errors.New("用户不存在")
+	}
+	if result.Error != nil {
+		return nil, nil, result.Error
+	}
+
+	var points models.UserPoint
+	result = database.DB.Where("user_id = ?", userID).First(&points)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// 理论上不会发生，但为了健壮性，返回一个空的积分结构
+		return &user, &models.UserPoint{UserID: userID}, nil
+	}
+	if result.Error != nil {
+		return nil, nil, result.Error
+	}
+
+	return &user, &points, nil
+}
+
+// UpdateUserStatus 更新用户状态
+func (s *AdminService) UpdateUserStatus(userID uint64, status string) error {
+	return database.DB.Model(&models.User{}).Where("id = ?", userID).Update("status", status).Error
+}
+
 // GenerateToken 生成JWT Token
 func (s *AdminService) GenerateToken(adminID uint64) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
