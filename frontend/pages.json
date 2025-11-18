@@ -1,0 +1,154 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "作品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/jijhuan/index",
+      "style": {
+        "navigationBarTitleText": "集换",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/chuangzuo/index",
+      "style": {
+        "navigationBarTitleText": "创作",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/shengtai/index",
+      "style": {
+        "navigationBarTitleText": "生态",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/auth/login",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/auth/register",
+      "style": {
+        "navigationBarTitleText": "注册",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/asset-detail/index",
+      "style": {
+        "navigationBarTitleText": "藏品详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/transparent-ledger/index",
+      "style": {
+        "navigationBarTitleText": "透明公示",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/listing/create",
+      "style": {
+        "navigationBarTitleText": "挂售",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mint/create",
+      "style": {
+        "navigationBarTitleText": "创作衍生作品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/exchange/index",
+      "style": {
+        "navigationBarTitleText": "兑换",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/third-party/bind",
+      "style": {
+        "navigationBarTitleText": "第三方关联",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "subPackages": [],
+  "preloadRule": {},
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#3a8fff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/icons/works.png",
+        "selectedIconPath": "static/icons/works-active.png",
+        "text": "作品"
+      },
+      {
+        "pagePath": "pages/chuangzuo/index",
+        "iconPath": "static/icons/create.png",
+        "selectedIconPath": "static/icons/create-active.png",
+        "text": "创作"
+      },
+      {
+        "pagePath": "pages/jijhuan/index",
+        "iconPath": "static/icons/exchange.png",
+        "selectedIconPath": "static/icons/exchange-active.png",
+        "text": "集换"
+      },
+      {
+        "pagePath": "pages/shengtai/index",
+        "iconPath": "static/icons/ecosystem.png",
+        "selectedIconPath": "static/icons/ecosystem-active.png",
+        "text": "生态"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "iconPath": "static/icons/profile.png",
+        "selectedIconPath": "static/icons/profile-active.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "HOHO",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5",
+    "backgroundColorTop": "#F5F5F5",
+    "backgroundColorBottom": "#FFFFFF"
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于完善用户体验"
+    },
+    "scope.camera": {
+      "desc": "拍摄照片和视频用于创作藏品"
+    },
+    "scope.record": {
+      "desc": "录制音频用于创作藏品"
+    }
+  }
+}
