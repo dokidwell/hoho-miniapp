@@ -128,6 +128,7 @@ import { ref, computed } from 'vue'
 import TabBar from '@/components/TabBar/TabBar.vue'
 import request from '@/api/request'
 import { API_ENDPOINTS } from '@/api/config'
+import { chooseAndUploadImage } from '@/utils/upload'
 
 const currentStep = ref(1)
 const submitting = ref(false)
@@ -158,17 +159,27 @@ const isStep2Valid = computed(() => {
 })
 
 // 选择图片
-function chooseImage() {
-  uni.chooseImage({
-    count: 1,
-    success: (res) => {
-      formData.value.image_url = res.tempFilePaths[0]
-      uni.showToast({
-        title: '图片已选择',
-        icon: 'success'
-      })
-    }
-  })
+async function chooseImage() {
+  try {
+    uni.showLoading({ title: '上传中...' })
+    
+    const urls = await chooseAndUploadImage(
+      { count: 1 },
+      (current, total, progress) => {
+        uni.showLoading({ title: `上传中 ${progress}%` })
+      }
+    )
+    
+    formData.value.image_url = urls[0]
+    uni.hideLoading()
+    uni.showToast({ title: '上传成功', icon: 'success' })
+  } catch (error) {
+    uni.hideLoading()
+    uni.showToast({
+      title: error.message || '上传失败',
+      icon: 'none'
+    })
+  }
 }
 
 // 分类选择
