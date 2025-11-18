@@ -46,7 +46,7 @@ func (s *UserService) Register(phone, password string) (*models.User, string, er
 		Phone:        phone,
 		PasswordHash: hashedPassword,
 		Nickname:     fmt.Sprintf("HOHO用户%s", phone[7:]), // 默认昵称
-		UID:          utils.GenerateUID(), // 生成UID
+		UID:          utils.GenerateUID(),                // 生成UID
 		Status:       "active",
 	}
 
@@ -59,11 +59,11 @@ func (s *UserService) Register(phone, password string) (*models.User, string, er
 
 		// 4.2. 初始化用户积分（使用配置的初始积分）
 		userPoint := models.UserPoint{
-			UserID: user.ID,
-			Balance: config.AppConfig.InitialPoints,
-			Frozen: decimal.Zero,
+			UserID:      user.ID,
+			Balance:     config.AppConfig.InitialPoints,
+			Frozen:      decimal.Zero,
 			TotalEarned: decimal.Zero,
-			TotalSpent: decimal.Zero,
+			TotalSpent:  decimal.Zero,
 		}
 		if err := tx.Create(&userPoint).Error; err != nil {
 			return err
@@ -162,8 +162,8 @@ func (s *UserService) VerifyIdentity(userID uint64, realName, idNumber string) (
 	// 暂时模拟验证成功
 
 	updates := map[string]interface{}{
-		"real_name": realName,
-		"id_number": idNumber,
+		"real_name":         realName,
+		"id_number":         idNumber,
 		"identity_verified": true,
 	}
 
@@ -195,7 +195,7 @@ func (s *UserService) GenerateToken(userID uint64) (string, error) {
 	if secret == "" {
 		return "", errors.New("JWT_SECRET未设置")
 	}
-	
+
 	// 默认过期时间为24小时
 	expirationTime := time.Now().Add(24 * time.Hour)
 

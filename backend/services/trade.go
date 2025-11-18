@@ -40,9 +40,9 @@ func (s *TradeService) CreateListing(sellerID uint64, assetInstanceID uint64, pr
 	// 2. 创建Listing
 	listing := models.Listing{
 		AssetInstanceID: assetInstanceID,
-		SellerID: sellerID,
-		Price: price,
-		Status: "active",
+		SellerID:        sellerID,
+		Price:           price,
+		Status:          "active",
 	}
 
 	if err := database.DB.Create(&listing).Error; err != nil {
@@ -128,7 +128,7 @@ func (s *TradeService) ExecuteTrade(listingID uint64, buyerID uint64) (*models.T
 	// 5. **使用Redis分布式锁**确保并发安全
 	lockKey := fmt.Sprintf("trade:lock:%d", listing.AssetInstanceID)
 	lockValue := fmt.Sprintf("%d:%d", buyerID, time.Now().UnixNano())
-	
+
 	// 尝试获取锁（最多重试3次）
 	var lockAcquired bool
 	for i := 0; i < 3; i++ {
@@ -201,15 +201,15 @@ func (s *TradeService) ExecuteTrade(listingID uint64, buyerID uint64) (*models.T
 
 		// 6.4. 创建Trade记录
 		*trade = models.Trade{
-			ListingID: listingID,
+			ListingID:       listingID,
 			AssetInstanceID: listing.AssetInstanceID,
-			BuyerID: buyerID,
-			SellerID: listing.SellerID,
-			Price: listing.Price,
-			PlatformFee: platformFee,
-			CreatorRoyalty: creatorRoyalty,
-			SellerReceived: sellerReceived,
-			Status: "pending",
+			BuyerID:         buyerID,
+			SellerID:        listing.SellerID,
+			Price:           listing.Price,
+			PlatformFee:     platformFee,
+			CreatorRoyalty:  creatorRoyalty,
+			SellerReceived:  sellerReceived,
+			Status:          "pending",
 		}
 
 		if err := tx.Create(trade).Error; err != nil {
@@ -261,8 +261,8 @@ func (s *TradeService) CompleteTradePayment(tradeID uint64) error {
 	return database.DB.Transaction(func(tx *gorm.DB) error {
 		// 1. 买家：扣减积分（从冻结改为已扣减）
 		if err := tx.Model(&models.UserPoint{}).Where("user_id = ?", trade.BuyerID).Updates(map[string]interface{}{
-			"balance": gorm.Expr("balance - ?", trade.Price),
-			"frozen": gorm.Expr("frozen - ?", trade.Price),
+			"balance":     gorm.Expr("balance - ?", trade.Price),
+			"frozen":      gorm.Expr("frozen - ?", trade.Price),
 			"total_spent": gorm.Expr("total_spent + ?", trade.Price),
 		}).Error; err != nil {
 			return err
@@ -270,7 +270,7 @@ func (s *TradeService) CompleteTradePayment(tradeID uint64) error {
 
 		// 2. 卖家：增加积分
 		if err := tx.Model(&models.UserPoint{}).Where("user_id = ?", trade.SellerID).Updates(map[string]interface{}{
-			"balance": gorm.Expr("balance + ?", trade.SellerReceived),
+			"balance":      gorm.Expr("balance + ?", trade.SellerReceived),
 			"total_earned": gorm.Expr("total_earned + ?", trade.SellerReceived),
 		}).Error; err != nil {
 			return err
@@ -278,7 +278,7 @@ func (s *TradeService) CompleteTradePayment(tradeID uint64) error {
 
 		// 3. 创作者：增加版税
 		if err := tx.Model(&models.UserPoint{}).Where("user_id = ?", gorm.Expr("(SELECT creator_id FROM assets WHERE id = (SELECT asset_id FROM asset_instances WHERE id = ?))", trade.AssetInstanceID)).Updates(map[string]interface{}{
-			"balance": gorm.Expr("balance + ?", trade.CreatorRoyalty),
+			"balance":      gorm.Expr("balance + ?", trade.CreatorRoyalty),
 			"total_earned": gorm.Expr("total_earned + ?", trade.CreatorRoyalty),
 		}).Error; err != nil {
 			return err
@@ -287,7 +287,7 @@ func (s *TradeService) CompleteTradePayment(tradeID uint64) error {
 		// 4. 更新AssetInstance的所有者
 		if err := tx.Model(&models.AssetInstance{}).Where("id = ?", trade.AssetInstanceID).Updates(map[string]interface{}{
 			"owner_id": trade.BuyerID,
-			"status": "in_wallet",
+			"status":   "in_wallet",
 		}).Error; err != nil {
 			return err
 		}
@@ -299,10 +299,10 @@ func (s *TradeService) CompleteTradePayment(tradeID uint64) error {
 
 		// 6. 记录社区事件
 		event := models.CommunityEvent{
-			EventType: "trade",
-			UserID: trade.BuyerID,
+			EventType:   "trade",
+			UserID:      trade.BuyerID,
 			Description: fmt.Sprintf("用户 uid%d 以 %.8f 积分购买了藏品", trade.BuyerID, trade.Price),
-			RelatedID: trade.ID,
+			RelatedID:   trade.ID,
 			RelatedType: "trade",
 		}
 		if err := tx.Create(&event).Error; err != nil {
@@ -325,6 +325,108 @@ func (s *TradeService) GetListings(page, pageSize int) ([]models.Listing, int64,
 
 	offset := (page - 1) * pageSize
 	if err := query.Limit(pageSize).Offset(offset).Order("id desc").Find(&listings).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return listings, total, nil
+}
+
+// ListListings 获取挂售列表（支持状态筛选）
+func (s *TradeService) ListListings(status string, page, pageSize int) ([]models.Listing, int64, error) {
+	var listings []models.Listing
+	var total int64
+
+	query := database.DB.Model(&models.Listing{})
+
+	// 如果指定了状态，则筛选
+	if status != "" && status != "all" {
+		query = query.Where("status = ?", status)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Preload("AssetInstance").Preload("AssetInstance.Asset").Limit(pageSize).Offset(offset).Order("id desc").Find(&listings).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return listings, total, nil
+}
+
+// GetListingDetail 获取挂售详情
+func (s *TradeService) GetListingDetail(listingID uint64) (*models.Listing, error) {
+	var listing models.Listing
+	if err := database.DB.Preload("AssetInstance").Preload("AssetInstance.Asset").First(&listing, listingID).Error; err != nil {
+		return nil, errors.New("挂售单不存在")
+	}
+	return &listing, nil
+}
+
+// GetTradeHistory 获取交易历史
+func (s *TradeService) GetTradeHistory(userID uint64, tradeType string, page, pageSize int) ([]models.Trade, int64, error) {
+	var trades []models.Trade
+	var total int64
+
+	query := database.DB.Model(&models.Trade{})
+
+	// 根据类型筛选
+	switch tradeType {
+	case "buy":
+		query = query.Where("buyer_id = ?", userID)
+	case "sell":
+		query = query.Where("seller_id = ?", userID)
+	default:
+		// all - 买入或卖出的都显示
+		query = query.Where("buyer_id = ? OR seller_id = ?", userID, userID)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Preload("AssetInstance").Preload("AssetInstance.Asset").Limit(pageSize).Offset(offset).Order("id desc").Find(&trades).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return trades, total, nil
+}
+
+// GetTradeDetail 获取交易详情
+func (s *TradeService) GetTradeDetail(tradeID uint64, userID uint64) (*models.Trade, error) {
+	var trade models.Trade
+	if err := database.DB.Preload("AssetInstance").Preload("AssetInstance.Asset").First(&trade, tradeID).Error; err != nil {
+		return nil, errors.New("交易不存在")
+	}
+
+	// 验证用户权限（只能查看自己参与的交易）
+	if trade.BuyerID != userID && trade.SellerID != userID {
+		return nil, errors.New("你没有权限查看此交易")
+	}
+
+	return &trade, nil
+}
+
+// GetMyListings 获取我的挂售列表
+func (s *TradeService) GetMyListings(userID uint64, status string, page, pageSize int) ([]models.Listing, int64, error) {
+	var listings []models.Listing
+	var total int64
+
+	query := database.DB.Model(&models.Listing{}).Where("seller_id = ?", userID)
+
+	// 如果指定了状态，则筛选
+	if status != "" && status != "all" {
+		query = query.Where("status = ?", status)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Preload("AssetInstance").Preload("AssetInstance.Asset").Limit(pageSize).Offset(offset).Order("id desc").Find(&listings).Error; err != nil {
 		return nil, 0, err
 	}
 

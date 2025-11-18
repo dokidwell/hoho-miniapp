@@ -22,10 +22,10 @@ func NewAssetService() *AssetService {
 // CreateCollection 创建藏品集合
 func (s *AssetService) CreateCollection(name, description, coverImage string) (*models.Collection, error) {
 	collection := models.Collection{
-		Name: name,
+		Name:        name,
 		Description: description,
-		CoverImage: coverImage,
-		Status: "active",
+		CoverImage:  coverImage,
+		Status:      "active",
 	}
 	if err := database.DB.Create(&collection).Error; err != nil {
 		return nil, err
@@ -44,13 +44,13 @@ func (s *AssetService) SubmitMintRequest(creatorID uint64, collectionID uint64, 
 	// 2. 创建Asset（藏品SKU），状态为待审核
 	asset := models.Asset{
 		CollectionID: collectionID,
-		Name: name,
-		Description: description,
-		MediaURL: mediaURL,
-		MediaType: mediaType,
-		TotalSupply: totalSupply,
-		CreatorID: creatorID,
-		Status: "pending_review",
+		Name:         name,
+		Description:  description,
+		MediaURL:     mediaURL,
+		MediaType:    mediaType,
+		TotalSupply:  totalSupply,
+		CreatorID:    creatorID,
+		Status:       "pending_review",
 	}
 
 	if err := database.DB.Create(&asset).Error; err != nil {
@@ -105,7 +105,7 @@ func (s *AssetService) MintAndAirdrop(assetID uint64, targetUserID uint64, count
 		return nil, errors.New("藏品未激活或已禁用")
 	}
 
-	if asset.MintedCount + count > asset.TotalSupply {
+	if asset.MintedCount+count > asset.TotalSupply {
 		return nil, errors.New("铸造数量超过总发行量")
 	}
 
@@ -114,13 +114,13 @@ func (s *AssetService) MintAndAirdrop(assetID uint64, targetUserID uint64, count
 		for i := 0; i < count; i++ {
 			// 实例编号从已铸造数量开始递增
 			instanceNo := asset.MintedCount + i + 1
-			
+
 			instance := models.AssetInstance{
-				AssetID: assetID,
+				AssetID:    assetID,
 				InstanceNo: instanceNo,
-				OwnerID: targetUserID,
-				TokenID: utils.GenerateTokenID(assetID, uint64(instanceNo)), // 生成唯一TokenID
-				Status: "in_wallet",
+				OwnerID:    targetUserID,
+				TokenID:    utils.GenerateTokenID(assetID, uint64(instanceNo)), // 生成唯一TokenID
+				Status:     "in_wallet",
 			}
 			if err := tx.Create(&instance).Error; err != nil {
 				return err
@@ -129,7 +129,7 @@ func (s *AssetService) MintAndAirdrop(assetID uint64, targetUserID uint64, count
 		}
 
 		// 更新Asset的已铸造数量
-		if err := tx.Model(&asset).Update("minted_count", asset.MintedCount + count).Error; err != nil {
+		if err := tx.Model(&asset).Update("minted_count", asset.MintedCount+count).Error; err != nil {
 			return err
 		}
 

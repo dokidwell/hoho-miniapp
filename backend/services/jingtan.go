@@ -107,7 +107,7 @@ func (s *JingtanService) SyncAssets(userID uint64) ([]models.JingtanAsset, error
 		// 检查是否已存在
 		var existingAsset models.JingtanAsset
 		result := database.DB.Where("user_id = ? AND jingtan_asset_id = ?", userID, mockAsset.JingtanAssetID).First(&existingAsset)
-		
+
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			// 不存在，创建新记录
 			asset := models.JingtanAsset{

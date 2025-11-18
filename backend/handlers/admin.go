@@ -56,13 +56,13 @@ func (h *AdminHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "登录成功",
 		"data": gin.H{
-			"id": admin.ID,
+			"id":       admin.ID,
 			"username": admin.Username,
-			"role": admin.Role,
-			"token": token,
+			"role":     admin.Role,
+			"token":    token,
 		},
 	})
 }
@@ -82,9 +82,9 @@ func (h *AdminHandler) GetProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "success",
-		"data": admin,
+		"data":    admin,
 	})
 }
 
@@ -106,7 +106,7 @@ func (h *AdminHandler) ListUsersPage(c *gin.Context) {
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
-	
+
 	// 简化分页导航，只显示当前页前后2页
 	startPage := pageNum - 2
 	if startPage < 1 {
@@ -123,15 +123,15 @@ func (h *AdminHandler) ListUsersPage(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "admin_users.html", gin.H{
-		"Title": "用户管理",
+		"Title":      "用户管理",
 		"ActiveMenu": "users",
-		"Users": users,
-		"Total": total,
-		"Page": pageNum,
-		"PageSize": pageSize,
+		"Users":      users,
+		"Total":      total,
+		"Page":       pageNum,
+		"PageSize":   pageSize,
 		"TotalPages": totalPages,
-		"Search": search,
-		"Pages": pages,
+		"Search":     search,
+		"Pages":      pages,
 	})
 }
 
@@ -169,9 +169,9 @@ func (h *AdminHandler) ListAssetReviewPage(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "admin_asset_review.html", gin.H{
-		"Title": "铸造审核",
+		"Title":      "铸造审核",
 		"ActiveMenu": "review",
-		"Assets": assets,
+		"Assets":     assets,
 	})
 }
 
@@ -204,9 +204,9 @@ func (h *AdminHandler) ReviewAsset(c *gin.Context) {
 // AirdropPoints 处理空投积分请求
 func (h *AdminHandler) AirdropPoints(c *gin.Context) {
 	var req struct {
-		UserID uint64  `json:"user_id" binding:"required"`
-		Amount string  `json:"amount" binding:"required"`
-		Reason string  `json:"reason" binding:"required"`
+		UserID uint64 `json:"user_id" binding:"required"`
+		Amount string `json:"amount" binding:"required"`
+		Reason string `json:"reason" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -248,8 +248,8 @@ func (h *AdminHandler) AirdropAsset(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "空投成功",
-		"data": instances,
+		"data":    instances,
 	})
 }

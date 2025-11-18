@@ -123,14 +123,14 @@ func (s *AdminService) GenerateToken(adminID uint64) (string, error) {
 	if secret == "" {
 		return "", errors.New("JWT_SECRET未设置")
 	}
-	
+
 	// 管理员Token有效期可以设置长一些，例如7天
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 
 	claims := jwt.MapClaims{
 		"admin_id": adminID,
-		"exp":     expirationTime.Unix(),
-		"iat":     time.Now().Unix(),
+		"exp":      expirationTime.Unix(),
+		"iat":      time.Now().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

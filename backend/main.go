@@ -97,12 +97,14 @@ func registerRoutes(router *gin.Engine) {
 	eventHandler := handlers.NewEventHandler(eventService)
 	jingtanService := services.NewJingtanService()
 	jingtanHandler := handlers.NewJingtanHandler(jingtanService)
+	tradeService := services.NewTradeService()
+	tradeHandler := handlers.NewTradeHandler(tradeService)
 	airdropService := services.NewAirdropService()
 
 	// 健康检查
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"message": "HOHO Miniapp Backend is running",
 		})
 	})
@@ -133,10 +135,25 @@ func registerRoutes(router *gin.Engine) {
 				assets.POST("", assetHandler.SubmitMintRequest) // 提交铸造请求
 			}
 
-			// 交易相关路由 (待实现)
+			// 交易相关路由
 			trades := auth.Group("/trades")
 			{
-				// trades.POST("/execute", tradeHandler.ExecuteTrade)
+				trades.POST("/execute", tradeHandler.ExecuteTrade)
+				trades.GET("/history", tradeHandler.GetTradeHistory)
+				trades.GET("/:id", tradeHandler.GetTradeDetail)
+			}
+
+			// 挂售相关路由
+			listings := auth.Group("/listings")
+			{
+				listings.POST("", tradeHandler.CreateListing)
+				listings.DELETE("/:id", tradeHandler.CancelListing)
+			}
+
+			// 我的挂售
+			my := auth.Group("/my")
+			{
+				my.GET("/listings", tradeHandler.GetMyListings)
 			}
 
 			// 积分相关路由 (待实现)
@@ -146,7 +163,7 @@ func registerRoutes(router *gin.Engine) {
 				// points.GET("/history", pointHandler.GetHistory)
 			}
 
-						// 社区事件路由
+			// 社区事件路由
 			events := auth.Group("/events")
 			{
 				events.GET("", eventHandler.ListEvents)
@@ -161,7 +178,6 @@ func registerRoutes(router *gin.Engine) {
 				jingtan.POST("/sync", jingtanHandler.SyncAssets)
 				jingtan.GET("/assets", jingtanHandler.GetAssets)
 			}
-			}
 		}
 
 		// 公开的藏品路由
@@ -174,7 +190,8 @@ func registerRoutes(router *gin.Engine) {
 		// 公开的集换路由
 		listingsPublic := v1.Group("/listings")
 		{
-			// listingsPublic.GET("", listingHandler.ListListings)
+			listingsPublic.GET("", tradeHandler.ListListings)
+			listingsPublic.GET("/:id", tradeHandler.GetListingDetail)
 		}
 	}
 
@@ -203,11 +220,11 @@ func registerRoutes(router *gin.Engine) {
 			authAdmin.GET("/dashboard", func(c *gin.Context) {
 				// 模拟数据
 				data := gin.H{
-					"Title": "仪表盘",
-					"ActiveMenu": "dashboard",
-					"TotalUsers": 1234,
-					"TotalAssets": 567,
-					"PendingReviews": 12,
+					"Title":            "仪表盘",
+					"ActiveMenu":       "dashboard",
+					"TotalUsers":       1234,
+					"TotalAssets":      567,
+					"PendingReviews":   12,
 					"TodayTradeVolume": "12,345.67890123",
 				}
 				c.HTML(http.StatusOK, "admin_dashboard.html", data)

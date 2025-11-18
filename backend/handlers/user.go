@@ -44,14 +44,14 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "注册成功",
 		"data": gin.H{
-			"id": user.ID,
-			"uid": user.UID,
-			"phone": user.Phone,
+			"id":       user.ID,
+			"uid":      user.UID,
+			"phone":    user.Phone,
 			"nickname": user.Nickname,
-			"token": token,
+			"token":    token,
 		},
 	})
 }
@@ -90,15 +90,15 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "登录成功",
 		"data": gin.H{
-			"id": user.ID,
-			"uid": user.UID,
-			"phone": user.Phone,
-			"nickname": user.Nickname,
+			"id":         user.ID,
+			"uid":        user.UID,
+			"phone":      user.Phone,
+			"nickname":   user.Nickname,
 			"avatar_url": user.AvatarURL,
-			"token": token,
+			"token":      token,
 		},
 	})
 }
@@ -119,9 +119,9 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "success",
-		"data": user,
+		"data":    user,
 	})
 }
 
@@ -156,9 +156,9 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "更新成功",
-		"data": user,
+		"data":    user,
 	})
 }
 
@@ -189,11 +189,11 @@ func (h *UserHandler) VerifyIdentity(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "实名认证成功",
 		"data": gin.H{
-			"id": user.ID,
-			"real_name": user.RealName,
+			"id":                user.ID,
+			"real_name":         user.RealName,
 			"identity_verified": user.IdentityVerified,
 		},
 	})
@@ -210,8 +210,8 @@ func (h *UserHandler) GetPoints(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "success",
-		"data": points,
+		"data":    points,
 	})
 }

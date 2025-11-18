@@ -38,12 +38,12 @@ func (h *EventHandler) ListEvents(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "success",
 		"data": gin.H{
-			"events": events,
-			"total": total,
-			"page": page,
+			"events":    events,
+			"total":     total,
+			"page":      page,
 			"page_size": pageSize,
 		},
 	})
@@ -65,8 +65,8 @@ func (h *EventHandler) GetEventDetail(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "success",
-		"data": event,
+		"data":    event,
 	})
 }

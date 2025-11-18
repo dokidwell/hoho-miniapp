@@ -37,7 +37,7 @@ func (h *JingtanHandler) BindAccount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "绑定成功",
 	})
 }
@@ -52,7 +52,7 @@ func (h *JingtanHandler) UnbindAccount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "解绑成功",
 	})
 }
@@ -68,9 +68,9 @@ func (h *JingtanHandler) SyncAssets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "同步成功",
-		"data": assets,
+		"data":    assets,
 	})
 }
 
@@ -85,8 +85,8 @@ func (h *JingtanHandler) GetAssets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "success",
-		"data": assets,
+		"data":    assets,
 	})
 }

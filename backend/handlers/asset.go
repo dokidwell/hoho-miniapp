@@ -43,9 +43,9 @@ func (h *AssetHandler) SubmitMintRequest(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "铸造请求已提交，等待审核",
-		"data": asset,
+		"data":    asset,
 	})
 }
 
@@ -71,8 +71,8 @@ func (h *AssetHandler) GetAssetDetail(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "success",
-		"data": asset,
+		"data":    asset,
 	})
 }
