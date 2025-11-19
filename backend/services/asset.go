@@ -6,7 +6,6 @@ import (
 	"hoho-miniapp/backend/database"
 	"hoho-miniapp/backend/models"
 	"hoho-miniapp/backend/utils"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -207,7 +206,7 @@ func (s *AssetService) GetUserAssetInstances(userID uint64, page, pageSize int, 
 			"name":          asset.Name,
 			"description":   asset.Description,
 			"image_url":     asset.MediaURL,
-			"serial_number": instance.SerialNumber,
+			"serial_number": instance.InstanceNo,
 			"status":        instance.Status,
 			"is_listed":     isListed,
 			"created_at":    instance.CreatedAt,

@@ -56,15 +56,15 @@ func (h *UserHandler) Register(c *gin.Context) {
 	})
 }
 
-// LoginRequest 定义登录请求体
-type LoginRequest struct {
+// UserLoginRequest 定义用户登录请求体
+type UserLoginRequest struct {
 	Phone    string `json:"phone" binding:"required,len=11"`
 	Password string `json:"password" binding:"required"`
 }
 
 // Login 处理用户登录请求
 func (h *UserHandler) Login(c *gin.Context) {
-	var req LoginRequest
+	var req UserLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误", "details": err.Error()})
 		return

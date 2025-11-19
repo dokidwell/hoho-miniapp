@@ -48,7 +48,6 @@ func (s *JingtanService) BindAccount(userID uint64, jingtanAccountID string, jin
 		UserID:      userID,
 		Platform:    "jingtan",
 		PlatformUID: jingtanAccountID,
-		Status:      "active",
 	}
 
 	if err := database.DB.Create(&account).Error; err != nil {

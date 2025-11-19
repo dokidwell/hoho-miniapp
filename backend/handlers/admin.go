@@ -26,15 +26,15 @@ func NewAdminHandler(adminService *services.AdminService, assetService *services
 	}
 }
 
-// LoginRequest 定义登录请求体
-type LoginRequest struct {
+// AdminLoginRequest 定义管理员登录请求体
+type AdminLoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
 // Login 处理管理员登录请求
 func (h *AdminHandler) Login(c *gin.Context) {
-	var req LoginRequest
+	var req AdminLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误", "details": err.Error()})
 		return

@@ -34,13 +34,12 @@ func (s *AirdropService) AirdropPoints(userID uint64, amount decimal.Decimal, re
 		}
 
 		// 2. 记录积分交易
-		transaction := models.PointTransaction{
-			UserID:          userID,
-			Amount:          amount,
-			TransactionType: "airdrop",
-			Description:     reason,
-			Status:          "completed",
-		}
+			transaction := models.PointTransaction{
+				UserID:      userID,
+				Amount:      amount,
+				Type:        "earn",
+				Description: reason,
+			}
 		if err := tx.Create(&transaction).Error; err != nil {
 			return err
 		}

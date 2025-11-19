@@ -1,6 +1,6 @@
 // API配置文件
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://api.hoho.app'
+export const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://api.hohopark.com'
   : 'http://localhost:8080'
 
 const API_VERSION = 'v1'

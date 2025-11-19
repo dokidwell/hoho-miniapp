@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -167,11 +169,11 @@ func registerRoutes(router *gin.Engine) {
 			}
 
 			// 积分相关路由 (待实现)
-			points := auth.Group("/points")
-			{
-				// points.GET("/balance", pointHandler.GetBalance)
-				// points.GET("/history", pointHandler.GetHistory)
-			}
+			_ = auth.Group("/points")
+			// {
+			// 	points.GET("/balance", pointHandler.GetBalance)
+			// 	points.GET("/history", pointHandler.GetHistory)
+			// }
 
 			// 社区事件路由
 			events := auth.Group("/events")
@@ -208,6 +210,16 @@ func registerRoutes(router *gin.Engine) {
 	// 初始化管理员服务和处理器
 	adminService := services.NewAdminService()
 	adminHandler := handlers.NewAdminHandler(adminService, assetService, airdropService)
+
+	// 注册自定义模板函数
+	router.SetFuncMap(template.FuncMap{
+		"sub": func(a, b int) int {
+			return a - b
+		},
+		"add": func(a, b int) int {
+			return a + b
+		},
+	})
 
 	// 加载HTML模板
 	router.LoadHTMLGlob("templates/*.html")
