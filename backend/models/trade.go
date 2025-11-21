@@ -14,7 +14,7 @@ type Listing struct {
 	AssetInstanceID uint64          `gorm:"index;not null" json:"asset_instance_id"`
 	SellerID        uint64          `gorm:"index;not null" json:"seller_id"`
 	Price           decimal.Decimal `gorm:"type:decimal(30,8);not null" json:"price"`
-	Status          string          `gorm:"type:enum('active', 'sold', 'canceled');default:'active'" json:"status"`
+	Status          string          `gorm:"size:20;default:'active'" json:"status"`
 	CreatedAt       time.Time       `json:"created_at"`
 	UpdatedAt       time.Time       `json:"updated_at"`
 }
@@ -31,7 +31,7 @@ type Trade struct {
 	PlatformFee     decimal.Decimal `gorm:"type:decimal(30,8);not null" json:"platform_fee"`    // 平台手续费（2.5%）
 	CreatorRoyalty  decimal.Decimal `gorm:"type:decimal(30,8);not null" json:"creator_royalty"` // 创作者版税（2.5%）
 	SellerReceived  decimal.Decimal `gorm:"type:decimal(30,8);not null" json:"seller_received"` // 卖家实际收到
-	Status          string          `gorm:"type:enum('pending', 'completed', 'failed', 'canceled');default:'pending'" json:"status"`
+	Status          string          `gorm:"size:20;default:'pending'" json:"status"`
 	CreatedAt       time.Time       `json:"created_at"`
 	UpdatedAt       time.Time       `json:"updated_at"`
 }

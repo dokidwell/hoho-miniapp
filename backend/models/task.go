@@ -9,7 +9,7 @@ type Task struct {
 	ID             uint      `gorm:"primaryKey" json:"id"`
 	Name           string    `gorm:"size:50;not null" json:"name"`
 	Description    string    `gorm:"size:255" json:"description"`
-	Type           string    `gorm:"type:enum('daily','once','achievement');not null" json:"type"`
+	Type           string    `gorm:"size:20;not null" json:"type"` // daily, once, achievement
 	RewardPoints   string    `gorm:"type:decimal(20,8);not null" json:"reward_points"`
 	ConditionType  string    `gorm:"size:50;not null" json:"condition_type"`
 	ConditionValue string    `gorm:"size:255" json:"condition_value"`

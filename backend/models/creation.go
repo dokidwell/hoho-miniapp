@@ -15,7 +15,7 @@ type Creation struct {
 	TotalSupply    uint       `gorm:"not null" json:"total_supply"`
 	Price          string     `gorm:"type:decimal(20,8);not null" json:"price"`
 	CommissionRate string     `gorm:"type:decimal(5,2);not null;default:40.00" json:"commission_rate"` // 平台分成比例（%）
-	Status         string     `gorm:"type:enum('pending','approved','rejected','published');default:'pending'" json:"status"`
+	Status         string     `gorm:"size:20;default:'pending'" json:"status"`
 	RejectReason   string     `gorm:"size:255" json:"reject_reason"`
 	ReviewerID     *uint      `json:"reviewer_id"`
 	ReviewedAt     *time.Time `json:"reviewed_at"`

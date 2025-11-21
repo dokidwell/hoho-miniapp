@@ -10,16 +10,16 @@ type Artwork struct {
 	Title        string     `gorm:"size:100;not null" json:"title"`
 	Description  string     `gorm:"type:text" json:"description"`
 	CreatorName  string     `gorm:"size:50" json:"creator_name"`
-	MediaType    string     `gorm:"type:enum('image','video','audio','3d');default:'image'" json:"media_type"`
+	MediaType    string     `gorm:"size:20;default:'image'" json:"media_type"`
 	MediaURL     string     `gorm:"size:255;not null" json:"media_url"`
 	ThumbnailURL string     `gorm:"size:255" json:"thumbnail_url"`
 	TotalSupply  uint       `gorm:"not null" json:"total_supply"`
 	MintedCount  uint       `gorm:"default:0" json:"minted_count"`
 	Price        string     `gorm:"type:decimal(20,8);not null" json:"price"` // 使用string存储decimal
-	Source       string     `gorm:"type:enum('jingtan','platform','community','waveup');default:'platform'" json:"source"`
+	Source       string     `gorm:"size:20;default:'platform'" json:"source"`
 	Series       string     `gorm:"size:50" json:"series"`
 	ReleaseDate  *time.Time `json:"release_date"`
-	Status       string     `gorm:"type:enum('draft','pending','active','sold_out','archived');default:'draft'" json:"status"`
+	Status       string     `gorm:"size:20;default:'draft'" json:"status"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 }
@@ -31,7 +31,7 @@ type ArtworkInstance struct {
 	OwnerID      uint      `gorm:"not null;index" json:"owner_id"`
 	SerialNumber string    `gorm:"size:50;uniqueIndex;not null" json:"serial_number"`
 	MintedAt     time.Time `json:"minted_at"`
-	Status       string    `gorm:"type:enum('owned','listed','locked');default:'owned'" json:"status"`
+	Status       string    `gorm:"size:20;default:'owned'" json:"status"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	

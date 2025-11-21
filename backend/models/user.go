@@ -19,7 +19,7 @@ type User struct {
 	RealName         string    `gorm:"type:varchar(100)" json:"real_name"`
 	IDNumber         string    `gorm:"type:varchar(50)" json:"-"`
 	IdentityVerified bool      `gorm:"default:false" json:"identity_verified"`
-	Status           string    `gorm:"type:enum('active', 'suspended', 'banned');default:'active'" json:"status"`
+	Status           string    `gorm:"size:20;default:'active'" json:"status"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 	// 关联关系
@@ -43,7 +43,7 @@ type PointTransaction struct {
 	gorm.Model
 	ID          uint64          `gorm:"primaryKey" json:"id"`
 	UserID      uint64          `gorm:"index;not null" json:"user_id"`
-	Type        string          `gorm:"type:enum('earn', 'spend', 'adjust', 'freeze', 'unfreeze')" json:"type"`
+	Type        string          `gorm:"size:20" json:"type"` // earn, spend, adjust, freeze, unfreeze
 	Amount      decimal.Decimal `gorm:"type:decimal(30,8);not null" json:"amount"`
 	Description string          `gorm:"type:varchar(255)" json:"description"`
 	RelatedID   uint64          `gorm:"index" json:"related_id"`

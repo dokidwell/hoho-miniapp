@@ -10,7 +10,7 @@ type Offer struct {
 	BuyerID            uint       `gorm:"not null;index" json:"buyer_id"`
 	ArtworkInstanceID  uint       `gorm:"not null;index" json:"artwork_instance_id"`
 	Price              string     `gorm:"type:decimal(20,8);not null" json:"price"`
-	Status             string     `gorm:"type:enum('pending','accepted','rejected','cancelled','expired');default:'pending'" json:"status"`
+	Status             string     `gorm:"size:20;default:'pending'" json:"status"`
 	ExpiresAt          *time.Time `json:"expires_at"`
 	RespondedAt        *time.Time `json:"responded_at"`
 	CreatedAt          time.Time  `json:"created_at"`
