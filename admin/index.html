@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HOHO Park 管理后台</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    /* 侧边栏 */
+    .sidebar {
+      width: 240px;
+      background: #001529;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .logo {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .menu {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+    
+    .menu-item {
+      padding: 12px 24px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .menu-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .menu-item.active {
+      background: #1890ff;
+    }
+    
+    .menu-icon {
+      font-size: 16px;
+    }
+    
+    /* 主内容区 */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .header {
+      height: 64px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #1890ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    .content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    .page {
+      display: none;
+    }
+    
+    .page.active {
+      display: block;
+    }
+    
+    .page-header {
+      margin-bottom: 24px;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .page-desc {
+      color: #999;
+      font-size: 14px;
+    }
+    
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-label {
+      color: #999;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .table th,
+    .table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .table th {
+      background: #fafafa;
+      font-weight: 600;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    
+    .btn-primary {
+      background: #1890ff;
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #40a9ff;
+    }
+    
+    .btn-success {
+      background: #52c41a;
+      color: #fff;
+    }
+    
+    .btn-danger {
+      background: #ff4d4f;
+      color: #fff;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    
+    .badge-pending {
+      background: #fff7e6;
+      color: #fa8c16;
+    }
+    
+    .badge-approved {
+      background: #f6ffed;
+      color: #52c41a;
+    }
+    
+    .badge-rejected {
+      background: #fff1f0;
+      color: #ff4d4f;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .form-input,
+    .form-textarea,
+    .form-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+      <div class="logo">🎨 HOHO Park</div>
+      <div class="menu">
+        <div class="menu-item active" data-page="dashboard">
+          <span class="menu-icon">📊</span>
+          <span>数据概览</span>
+        </div>
+        <div class="menu-item" data-page="creations">
+          <span class="menu-icon">🎨</span>
+          <span>创作审核</span>
+        </div>
+        <div class="menu-item" data-page="tasks">
+          <span class="menu-icon">✅</span>
+          <span>任务管理</span>
+        </div>
+        <div class="menu-item" data-page="announcements">
+          <span class="menu-icon">📢</span>
+          <span>公告管理</span>
+        </div>
+        <div class="menu-item" data-page="platform-account">
+          <span class="menu-icon">☀️</span>
+          <span>阳光账户</span>
+        </div>
+        <div class="menu-item" data-page="config">
+          <span class="menu-icon">⚙️</span>
+          <span>系统配置</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="main">
+      <div class="header">
+        <div class="breadcrumb">管理后台</div>
+        <div class="user-info">
+          <div class="avatar">A</div>
+          <span>管理员</span>
+        </div>
+      </div>
+      
+      <div class="content">
+        <!-- 数据概览页面 -->
+        <div id="dashboard" class="page active">
+          <div class="page-header">
+            <h1 class="page-title">数据概览</h1>
+            <p class="page-desc">平台核心数据统计</p>
+          </div>
+          
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">总用户数</div>
+              <div class="stat-value">1,234</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">总作品数</div>
+              <div class="stat-value">567</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">待审核</div>
+              <div class="stat-value">23</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">今日交易</div>
+              <div class="stat-value">89</div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-title">最近活动</div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>时间</th>
+                  <th>类型</th>
+                  <th>内容</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2024-11-21 10:30</td>
+                  <td>创作提交</td>
+                  <td>用户A提交了新作品</td>
+                  <td><span class="badge badge-pending">待审核</span></td>
+                </tr>
+                <tr>
+                  <td>2024-11-21 09:15</td>
+                  <td>作品购买</td>
+                  <td>用户B购买了作品《大鱼HOHO》</td>
+                  <td><span class="badge badge-approved">成功</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- 创作审核页面 -->
+        <div id="creations" class="page">
+          <div class="page-header">
+            <h1 class="page-title">创作审核</h1>
+            <p class="page-desc">审核用户提交的创作作品</p>
+          </div>
+          
+          <div class="card">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>作品名称</th>
+                  <th>创作者</th>
+                  <th>提交时间</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="creations-list">
+                <tr>
+                  <td colspan="6" style="text-align: center; color: #999;">加载中...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- 任务管理页面 -->
+        <div id="tasks" class="page">
+          <div class="page-header">
+            <h1 class="page-title">任务管理</h1>
+            <p class="page-desc">管理平台任务和奖励</p>
+          </div>
+          
+          <div class="card">
+            <button class="btn btn-primary" onclick="showAddTaskForm()">+ 添加任务</button>
+          </div>
+          
+          <div class="card">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>任务名称</th>
+                  <th>奖励积分</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="tasks-list">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: #999;">加载中...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- 公告管理页面 -->
+        <div id="announcements" class="page">
+          <div class="page-header">
+            <h1 class="page-title">公告管理</h1>
+            <p class="page-desc">发布和管理平台公告</p>
+          </div>
+          
+          <div class="card">
+            <button class="btn btn-primary" onclick="showAddAnnouncementForm()">+ 发布公告</button>
+          </div>
+          
+          <div class="card">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>标题</th>
+                  <th>发布时间</th>
+                  <th>置顶</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="announcements-list">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: #999;">加载中...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- 阳光账户页面 -->
+        <div id="platform-account" class="page">
+          <div class="page-header">
+            <h1 class="page-title">阳光账户</h1>
+            <p class="page-desc">平台收入透明公示</p>
+          </div>
+          
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">当前余额</div>
+              <div class="stat-value">12,345.67</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">累计收入</div>
+              <div class="stat-value">98,765.43</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">累计支出</div>
+              <div class="stat-value">86,419.76</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">交易笔数</div>
+              <div class="stat-value">1,234</div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-title">交易记录</div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>时间</th>
+                  <th>类型</th>
+                  <th>金额</th>
+                  <th>说明</th>
+                </tr>
+              </thead>
+              <tbody id="platform-transactions">
+                <tr>
+                  <td colspan="4" style="text-align: center; color: #999;">加载中...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- 系统配置页面 -->
+        <div id="config" class="page">
+          <div class="page-header">
+            <h1 class="page-title">系统配置</h1>
+            <p class="page-desc">配置平台核心参数</p>
+          </div>
+          
+          <div class="card">
+            <div class="card-title">分成配置</div>
+            <div class="form-group">
+              <label class="form-label">创作者分成比例 (%)</label>
+              <input type="number" class="form-input" value="60" min="0" max="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label">平台分成比例 (%)</label>
+              <input type="number" class="form-input" value="40" min="0" max="100">
+            </div>
+            <button class="btn btn-primary">保存配置</button>
+          </div>
+          
+          <div class="card">
+            <div class="card-title">手续费配置</div>
+            <div class="form-group">
+              <label class="form-label">交易手续费率 (%)</label>
+              <input type="number" class="form-input" value="2.5" min="0" max="100" step="0.1">
+            </div>
+            <button class="btn btn-primary">保存配置</button>
+          </div>
+          
+          <div class="card">
+            <div class="card-title">功能开关</div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" checked> 启用创作功能
+              </label>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" checked> 启用任务系统
+              </label>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox"> 启用第三方插件（鲸探）
+              </label>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox"> 启用第三方插件（Waveup）
+              </label>
+            </div>
+            <button class="btn btn-primary">保存配置</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 页面切换
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function() {
+        // 更新菜单激活状态
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        // 显示对应页面
+        const pageName = this.dataset.page;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageName).classList.add('active');
+        
+        // 加载页面数据
+        loadPageData(pageName);
+      });
+    });
+    
+    // 加载页面数据
+    function loadPageData(pageName) {
+      switch(pageName) {
+        case 'creations':
+          loadCreations();
+          break;
+        case 'tasks':
+          loadTasks();
+          break;
+        case 'announcements':
+          loadAnnouncements();
+          break;
+        case 'platform-account':
+          loadPlatformTransactions();
+          break;
+      }
+    }
+    
+    // 加载创作列表
+    function loadCreations() {
+      // TODO: 调用API
+      const list = document.getElementById('creations-list');
+      list.innerHTML = `
+        <tr>
+          <td>1</td>
+          <td>大鱼HOHO</td>
+          <td>用户A</td>
+          <td>2024-11-21 10:30</td>
+          <td><span class="badge badge-pending">待审核</span></td>
+          <td>
+            <button class="btn btn-success" onclick="approveCreation(1)">通过</button>
+            <button class="btn btn-danger" onclick="rejectCreation(1)">拒绝</button>
+          </td>
+        </tr>
+      `;
+    }
+    
+    // 加载任务列表
+    function loadTasks() {
+      const list = document.getElementById('tasks-list');
+      list.innerHTML = `
+        <tr>
+          <td>1</td>
+          <td>每日签到</td>
+          <td>0.00001</td>
+          <td><span class="badge badge-approved">启用</span></td>
+          <td>
+            <button class="btn btn-primary">编辑</button>
+            <button class="btn btn-danger">禁用</button>
+          </td>
+        </tr>
+      `;
+    }
+    
+    // 加载公告列表
+    function loadAnnouncements() {
+      const list = document.getElementById('announcements-list');
+      list.innerHTML = `
+        <tr>
+          <td>1</td>
+          <td>平台上线公告</td>
+          <td>2024-11-01 10:00</td>
+          <td>是</td>
+          <td>
+            <button class="btn btn-primary">编辑</button>
+            <button class="btn btn-danger">删除</button>
+          </td>
+        </tr>
+      `;
+    }
+    
+    // 加载平台交易记录
+    function loadPlatformTransactions() {
+      const list = document.getElementById('platform-transactions');
+      list.innerHTML = `
+        <tr>
+          <td>2024-11-21 10:30</td>
+          <td>创作分成</td>
+          <td style="color: #52c41a;">+39.99</td>
+          <td>作品《大鱼HOHO》销售分成</td>
+        </tr>
+      `;
+    }
+    
+    // 审核通过
+    function approveCreation(id) {
+      if (confirm('确定通过该创作审核吗？')) {
+        alert('审核通过');
+        loadCreations();
+      }
+    }
+    
+    // 审核拒绝
+    function rejectCreation(id) {
+      const reason = prompt('请输入拒绝原因：');
+      if (reason) {
+        alert('已拒绝');
+        loadCreations();
+      }
+    }
+    
+    // 初始加载
+    loadCreations();
+  </script>
+</body>
+</html>
