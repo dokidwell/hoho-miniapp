@@ -59,19 +59,10 @@ func main() {
 }
 
 func initDatabase() error {
-	// 如果是测试环境，使用测试数据库
-	if os.Getenv("ENV") == "test" {
-		return database.InitTestDatabase()
-	}
 	return database.InitDatabase()
 }
 
 func initRedis() error {
-	// 测试环境下跳过Redis
-	if os.Getenv("ENV") == "test" {
-		log.Println("⚠️  Skipping Redis in test mode")
-		return nil
-	}
 	return database.InitRedis()
 }
 
@@ -260,7 +251,12 @@ func registerRoutes(router *gin.Engine) {
 			listingsPublic.GET("/:id", tradeHandler.GetListingDetail)
 		}
 
-			// 公开的事件路由（已在认证路由中注册）
+			// 公开的事件路由
+			eventsPublic := v1.Group("/events")
+			{
+				eventsPublic.GET("", eventHandler.ListEvents)
+				eventsPublic.GET("/:id", eventHandler.GetEventDetail)
+			}
 			
 			// 公开的公告路由
 			announcementsPublic := v1.Group("/announcements")

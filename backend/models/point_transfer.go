@@ -12,7 +12,7 @@ type PointTransfer struct {
 	Amount     string    `gorm:"type:decimal(20,8);not null" json:"amount"`
 	Fee        string    `gorm:"type:decimal(20,8);not null;default:0.00000000" json:"fee"`
 	Message    string    `gorm:"size:255" json:"message"`
-	Status     string    `gorm:"size:20;default:'pending'" json:"status"`
+	Status     string    `gorm:"type:enum('pending','completed','failed');default:'pending'" json:"status"`
 	CreatedAt  time.Time `json:"created_at"`
 	
 	// 关联

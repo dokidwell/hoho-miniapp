@@ -13,7 +13,7 @@ type Collection struct {
 	Name        string    `gorm:"type:varchar(100);not null" json:"name"`
 	Description string    `gorm:"type:varchar(500)" json:"description"`
 	CoverImage  string    `gorm:"type:varchar(500)" json:"cover_image"`
-	Status      string    `gorm:"size:20;default:'active'" json:"status"`
+	Status      string    `gorm:"type:enum('active', 'inactive');default:'active'" json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -26,11 +26,11 @@ type Asset struct {
 	Name         string    `gorm:"type:varchar(100);not null" json:"name"`
 	Description  string    `gorm:"type:varchar(500)" json:"description"`
 	MediaURL     string    `gorm:"type:varchar(500);not null" json:"media_url"`
-	MediaType    string    `gorm:"size:20;not null" json:"media_type"`
+	MediaType    string    `gorm:"type:enum('image', 'video', 'audio');not null" json:"media_type"`
 	TotalSupply  int       `gorm:"not null" json:"total_supply"`     // 总发行量
 	MintedCount  int       `gorm:"default:0" json:"minted_count"`    // 已铸造数量
 	CreatorID    uint64    `gorm:"index;not null" json:"creator_id"` // 创作者ID
-	Status       string    `gorm:"size:20;default:'pending_review'" json:"status"`
+	Status       string    `gorm:"type:enum('pending_review', 'approved', 'rejected', 'active', 'inactive');default:'pending_review'" json:"status"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -43,7 +43,7 @@ type AssetInstance struct {
 	InstanceNo int       `gorm:"not null" json:"instance_no"`                            // 实例编号（#1, #2, #3...）
 	OwnerID    uint64    `gorm:"index;not null" json:"owner_id"`                         // 当前持有者ID
 	TokenID    string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"token_id"` // 唯一标识符，模拟链上TokenID
-	Status     string    `gorm:"size:20;default:'in_wallet'" json:"status"`
+	Status     string    `gorm:"type:enum('in_wallet', 'on_sale', 'pending_trade', 'burned');default:'in_wallet'" json:"status"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }
@@ -56,7 +56,7 @@ type JingtanAsset struct {
 	JingtanAssetID string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"jingtan_asset_id"` // 鲸探平台的资产ID
 	Name           string    `gorm:"type:varchar(100)" json:"name"`
 	ImageURL       string    `gorm:"type:varchar(500)" json:"image_url"`
-	Status         string    `gorm:"size:20;default:'active'" json:"status"`
+	Status         string    `gorm:"type:enum('active', 'inactive');default:'active'" json:"status"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }

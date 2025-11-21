@@ -17,7 +17,7 @@ type PlatformAccount struct {
 // PlatformTransaction 平台账户交易记录模型
 type PlatformTransaction struct {
 	ID           uint      `gorm:"primaryKey" json:"id"`
-	Type         string    `gorm:"size:20;not null" json:"type"`
+	Type         string    `gorm:"type:enum('commission','fee','expense','adjustment');not null" json:"type"`
 	Amount       string    `gorm:"type:decimal(20,8);not null" json:"amount"`
 	BalanceAfter string    `gorm:"type:decimal(20,8);not null" json:"balance_after"`
 	Description  string    `gorm:"size:255;not null" json:"description"`

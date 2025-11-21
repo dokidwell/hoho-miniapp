@@ -9,8 +9,8 @@ type Announcement struct {
 	ID          uint       `gorm:"primaryKey" json:"id"`
 	Title       string     `gorm:"size:100;not null" json:"title"`
 	Content     string     `gorm:"type:text;not null" json:"content"`
-	Type        string     `gorm:"size:20;default:'system'" json:"type"`
-	Priority    string     `gorm:"size:20;default:'normal'" json:"priority"`
+	Type        string     `gorm:"type:enum('system','rule','event','maintenance');default:'system'" json:"type"`
+	Priority    string     `gorm:"type:enum('low','normal','high','urgent');default:'normal'" json:"priority"`
 	IsPinned    bool       `gorm:"default:false" json:"is_pinned"`
 	IsPublished bool       `gorm:"default:false" json:"is_published"`
 	PublishedAt *time.Time `json:"published_at"`
@@ -22,7 +22,7 @@ type Announcement struct {
 type Notification struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	UserID    uint      `gorm:"not null;index" json:"user_id"`
-	Type      string    `gorm:"size:20;not null" json:"type"`
+	Type      string    `gorm:"type:enum('offer','trade','task','announcement','system');not null" json:"type"`
 	Title     string    `gorm:"size:100;not null" json:"title"`
 	Content   string    `gorm:"size:255;not null" json:"content"`
 	RelatedID *uint     `json:"related_id"`
