@@ -4,14 +4,23 @@ import (
 	"net/http"
 	"strconv"
 
-	"hoho-api/services"
-
 	"github.com/gin-gonic/gin"
+	"hoho-miniapp/backend/services"
 )
 
-// GetPlatformAccount 获取平台账户信息（阳光账户）
-func GetPlatformAccount(c *gin.Context) {
-	account, err := services.GetPlatformAccount()
+type PlatformAccountHandler struct {
+	platformAccountService *services.PlatformAccountService
+}
+
+func NewPlatformAccountHandler(platformAccountService *services.PlatformAccountService) *PlatformAccountHandler {
+	return &PlatformAccountHandler{
+		platformAccountService: platformAccountService,
+	}
+}
+
+// GetAccountInfo 获取平台账户信息（阳光账户）
+func (h *PlatformAccountHandler) GetAccountInfo(c *gin.Context) {
+	account, err := h.platformAccountService.GetPlatformAccount()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -20,13 +29,13 @@ func GetPlatformAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"account": account})
 }
 
-// GetPlatformTransactions 获取平台交易记录
-func GetPlatformTransactions(c *gin.Context) {
+// GetTransactions 获取平台交易记录
+func (h *PlatformAccountHandler) GetTransactions(c *gin.Context) {
 	transactionType := c.Query("type")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "50"))
 	
-	transactions, total, err := services.GetPlatformTransactions(transactionType, page, pageSize)
+	transactions, total, err := h.platformAccountService.GetPlatformTransactions(transactionType, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -4,13 +4,22 @@ import (
 	"net/http"
 	"strconv"
 
-	"hoho-api/services"
-
 	"github.com/gin-gonic/gin"
+	"hoho-miniapp/backend/services"
 )
 
-// CreateCreation 创建创作
-func CreateCreation(c *gin.Context) {
+type CreationHandler struct {
+	creationService *services.CreationService
+}
+
+func NewCreationHandler(creationService *services.CreationService) *CreationHandler {
+	return &CreationHandler{
+		creationService: creationService,
+	}
+}
+
+// SubmitCreation 提交创作
+func (h *CreationHandler) SubmitCreation(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	
 	var req struct {
@@ -27,7 +36,7 @@ func CreateCreation(c *gin.Context) {
 		return
 	}
 	
-	creation, err := services.CreateCreation(
+	creation, err := h.creationService.SubmitCreation(
 		userID.(uint),
 		req.Title,
 		req.Description,
@@ -49,14 +58,14 @@ func CreateCreation(c *gin.Context) {
 }
 
 // GetMyCreations 获取我的创作列表
-func GetMyCreations(c *gin.Context) {
+func (h *CreationHandler) GetMyCreations(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	
 	status := c.Query("status")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	
-	creations, total, err := services.GetUserCreations(userID.(uint), status, page, pageSize)
+	creations, total, err := h.creationService.GetUserCreations(userID.(uint), status, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -71,10 +80,10 @@ func GetMyCreations(c *gin.Context) {
 }
 
 // GetCreationDetail 获取创作详情
-func GetCreationDetail(c *gin.Context) {
+func (h *CreationHandler) GetCreationDetail(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
 	
-	creation, err := services.GetCreationByID(uint(id))
+	creation, err := h.creationService.GetCreationByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "创作不存在"})
 		return

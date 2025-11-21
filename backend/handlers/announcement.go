@@ -4,18 +4,27 @@ import (
 	"net/http"
 	"strconv"
 
-	"hoho-api/services"
-
 	"github.com/gin-gonic/gin"
+	"hoho-miniapp/backend/services"
 )
 
-// GetAnnouncements 获取公告列表
-func GetAnnouncements(c *gin.Context) {
+type AnnouncementHandler struct {
+	announcementService *services.AnnouncementService
+}
+
+func NewAnnouncementHandler(announcementService *services.AnnouncementService) *AnnouncementHandler {
+	return &AnnouncementHandler{
+		announcementService: announcementService,
+	}
+}
+
+// GetAnnouncementList 获取公告列表
+func (h *AnnouncementHandler) GetAnnouncementList(c *gin.Context) {
 	announcementType := c.Query("type")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	
-	announcements, total, err := services.GetAnnouncements(announcementType, page, pageSize)
+	announcements, total, err := h.announcementService.GetAnnouncements(announcementType, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -30,10 +39,10 @@ func GetAnnouncements(c *gin.Context) {
 }
 
 // GetAnnouncementDetail 获取公告详情
-func GetAnnouncementDetail(c *gin.Context) {
+func (h *AnnouncementHandler) GetAnnouncementDetail(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
 	
-	announcement, err := services.GetAnnouncementByID(uint(id))
+	announcement, err := h.announcementService.GetAnnouncementByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "公告不存在"})
 		return

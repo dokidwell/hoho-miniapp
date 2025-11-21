@@ -103,6 +103,26 @@ func registerRoutes(router *gin.Engine) {
 	tradeHandler := handlers.NewTradeHandler(tradeService)
 	uploadHandler := handlers.NewUploadHandler()
 	airdropService := services.NewAirdropService()
+	
+	// 初始化新增服务和处理器
+	creationService := services.NewCreationService()
+	creationHandler := handlers.NewCreationHandler(creationService)
+	taskService := services.NewTaskService()
+	taskHandler := handlers.NewTaskHandler(taskService)
+	announcementService := services.NewAnnouncementService()
+	announcementHandler := handlers.NewAnnouncementHandler(announcementService)
+	offerService := services.NewOfferService()
+	offerHandler := handlers.NewOfferHandler(offerService)
+	platformAccountService := services.NewPlatformAccountService()
+	platformAccountHandler := handlers.NewPlatformAccountHandler(platformAccountService)
+	
+	// 初始化管理员服务和处理器
+	adminService := services.NewAdminService()
+	adminHandler := handlers.NewAdminHandler(adminService, assetService, airdropService)
+	adminCreationHandler := handlers.NewAdminCreationHandler(creationService)
+	adminTaskHandler := handlers.NewAdminTaskHandler(taskService)
+	adminAnnouncementHandler := handlers.NewAdminAnnouncementHandler(announcementService)
+	adminConfigHandler := handlers.NewAdminConfigHandler()
 
 	// 健康检查
 	router.GET("/health", func(c *gin.Context) {
@@ -182,15 +202,40 @@ func registerRoutes(router *gin.Engine) {
 				events.GET("/:id", eventHandler.GetEventDetail)
 			}
 
-			// 鲸探API路由
-			jingtan := auth.Group("/jingtan")
-			{
-				jingtan.POST("/bind", jingtanHandler.BindAccount)
-				jingtan.DELETE("/unbind", jingtanHandler.UnbindAccount)
-				jingtan.POST("/sync", jingtanHandler.SyncAssets)
-				jingtan.GET("/assets", jingtanHandler.GetAssets)
+				// 鲸探API路由
+				jingtan := auth.Group("/jingtan")
+				{
+					jingtan.POST("/bind", jingtanHandler.BindAccount)
+					jingtan.DELETE("/unbind", jingtanHandler.UnbindAccount)
+					jingtan.POST("/sync", jingtanHandler.SyncAssets)
+					jingtan.GET("/assets", jingtanHandler.GetAssets)
+				}
+				
+				// 创作相关路由
+				creations := auth.Group("/creations")
+				{
+					creations.POST("", creationHandler.SubmitCreation)
+					creations.GET("", creationHandler.GetMyCreations)
+					creations.GET("/:id", creationHandler.GetCreationDetail)
+				}
+				
+				// 任务相关路由
+				tasks := auth.Group("/tasks")
+				{
+					tasks.GET("", taskHandler.GetTaskList)
+					tasks.POST("/:id/complete", taskHandler.CompleteTask)
+					tasks.POST("/:id/claim", taskHandler.ClaimReward)
+				}
+				
+				// 出价/心愿单相关路由
+				offers := auth.Group("/offers")
+				{
+					offers.POST("", offerHandler.CreateOffer)
+					offers.GET("", offerHandler.GetMyOffers)
+					offers.DELETE("/:id", offerHandler.CancelOffer)
+					offers.POST("/:id/accept", offerHandler.AcceptOffer)
+				}
 			}
-		}
 
 		// 公开的藏品路由
 		assetsPublic := v1.Group("/assets")
@@ -206,17 +251,27 @@ func registerRoutes(router *gin.Engine) {
 			listingsPublic.GET("/:id", tradeHandler.GetListingDetail)
 		}
 
-		// 公开的事件路由
-		eventsPublic := v1.Group("/events")
-		{
-			eventsPublic.GET("", eventHandler.ListEvents)
-			eventsPublic.GET("/:id", eventHandler.GetEventDetail)
+			// 公开的事件路由
+			eventsPublic := v1.Group("/events")
+			{
+				eventsPublic.GET("", eventHandler.ListEvents)
+				eventsPublic.GET("/:id", eventHandler.GetEventDetail)
+			}
+			
+			// 公开的公告路由
+			announcementsPublic := v1.Group("/announcements")
+			{
+				announcementsPublic.GET("", announcementHandler.GetAnnouncementList)
+				announcementsPublic.GET("/:id", announcementHandler.GetAnnouncementDetail)
+			}
+			
+			// 公开的平台账户路由
+			platformAccountPublic := v1.Group("/platform-account")
+			{
+				platformAccountPublic.GET("", platformAccountHandler.GetAccountInfo)
+				platformAccountPublic.GET("/transactions", platformAccountHandler.GetTransactions)
+			}
 		}
-	}
-
-	// 初始化管理员服务和处理器
-	adminService := services.NewAdminService()
-	adminHandler := handlers.NewAdminHandler(adminService, assetService, airdropService)
 
 	// 注册自定义模板函数
 	router.SetFuncMap(template.FuncMap{
@@ -274,12 +329,51 @@ func registerRoutes(router *gin.Engine) {
 				assetsReview.PUT("/:id", adminHandler.ReviewAsset)
 			}
 
-			// 空投管理路由
-			airdrop := authAdmin.Group("/airdrop")
-			{
-				airdrop.POST("/points", adminHandler.AirdropPoints)
-				airdrop.POST("/asset", adminHandler.AirdropAsset)
+				// 空投管理路由
+				airdrop := authAdmin.Group("/airdrop")
+				{
+					airdrop.POST("/points", adminHandler.AirdropPoints)
+					airdrop.POST("/asset", adminHandler.AirdropAsset)
+				}
+				
+				// 创作审核管理路由
+				creationsAdmin := authAdmin.Group("/creations")
+				{
+					creationsAdmin.GET("", adminCreationHandler.GetCreationList)
+					creationsAdmin.GET("/:id", adminCreationHandler.GetCreationDetail)
+					creationsAdmin.POST("/:id/approve", adminCreationHandler.ApproveCreation)
+					creationsAdmin.POST("/:id/reject", adminCreationHandler.RejectCreation)
+				}
+				
+				// 任务管理路由
+				tasksAdmin := authAdmin.Group("/tasks")
+				{
+					tasksAdmin.GET("", adminTaskHandler.GetTaskList)
+					tasksAdmin.POST("", adminTaskHandler.CreateTask)
+					tasksAdmin.PUT("/:id", adminTaskHandler.UpdateTask)
+					tasksAdmin.DELETE("/:id", adminTaskHandler.DeleteTask)
+					tasksAdmin.POST("/:id/toggle", adminTaskHandler.ToggleTask)
+				}
+				
+				// 公告管理路由
+				announcementsAdmin := authAdmin.Group("/announcements")
+				{
+					announcementsAdmin.GET("", adminAnnouncementHandler.GetAnnouncementList)
+					announcementsAdmin.POST("", adminAnnouncementHandler.CreateAnnouncement)
+					announcementsAdmin.PUT("/:id", adminAnnouncementHandler.UpdateAnnouncement)
+					announcementsAdmin.DELETE("/:id", adminAnnouncementHandler.DeleteAnnouncement)
+					announcementsAdmin.POST("/:id/toggle-pin", adminAnnouncementHandler.TogglePin)
+				}
+				
+				// 系统配置管理路由
+				configAdmin := authAdmin.Group("/config")
+				{
+					configAdmin.GET("", adminConfigHandler.GetConfig)
+					configAdmin.PUT("", adminConfigHandler.UpdateConfig)
+				}
 			}
 		}
+		
+		// 静态文件服务（管理后台）
+		router.Static("/admin-ui", "./admin")
 	}
-}

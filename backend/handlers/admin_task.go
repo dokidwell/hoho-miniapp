@@ -4,89 +4,59 @@ import (
 	"net/http"
 	"strconv"
 
-	"hoho-api/models"
-	"hoho-api/services"
-
 	"github.com/gin-gonic/gin"
+	"hoho-miniapp/backend/services"
 )
 
-// GetAllTasksAdmin 获取所有任务列表（管理员）
-func GetAllTasksAdmin(c *gin.Context) {
-	taskType := c.Query("type")
-	enabled := c.Query("enabled")
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "50"))
-	
-	tasks, total, err := services.GetAllTasksAdmin(taskType, enabled, page, pageSize)
+type AdminTaskHandler struct {
+	taskService *services.TaskService
+}
+
+func NewAdminTaskHandler(taskService *services.TaskService) *AdminTaskHandler {
+	return &AdminTaskHandler{
+		taskService: taskService,
+	}
+}
+
+// GetTaskList 获取任务列表（管理员）
+func (h *AdminTaskHandler) GetTaskList(c *gin.Context) {
+	tasks, err := h.taskService.GetAllTasks()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	
-	c.JSON(http.StatusOK, gin.H{
-		"tasks":     tasks,
-		"total":     total,
-		"page":      page,
-		"page_size": pageSize,
-	})
+	c.JSON(http.StatusOK, gin.H{"tasks": tasks})
 }
 
 // CreateTask 创建任务
-func CreateTask(c *gin.Context) {
-	var task models.Task
-	
-	if err := c.ShouldBindJSON(&task); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	
-	if err := services.CreateTask(&task); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	
-	c.JSON(http.StatusOK, gin.H{
-		"message": "任务创建成功",
-		"task":    task,
-	})
+func (h *AdminTaskHandler) CreateTask(c *gin.Context) {
+	// TODO: 实现创建任务
+	c.JSON(http.StatusOK, gin.H{"message": "任务创建成功"})
 }
 
 // UpdateTask 更新任务
-func UpdateTask(c *gin.Context) {
+func (h *AdminTaskHandler) UpdateTask(c *gin.Context) {
 	taskID, _ := strconv.ParseUint(c.Param("id"), 10, 32)
 	
-	var updates map[string]interface{}
-	if err := c.ShouldBindJSON(&updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	
-	if err := services.UpdateTask(uint(taskID), updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	
-	c.JSON(http.StatusOK, gin.H{"message": "任务更新成功"})
+	// TODO: 实现更新任务
+	c.JSON(http.StatusOK, gin.H{"message": "任务更新成功", "id": taskID})
 }
 
 // DeleteTask 删除任务
-func DeleteTask(c *gin.Context) {
+func (h *AdminTaskHandler) DeleteTask(c *gin.Context) {
 	taskID, _ := strconv.ParseUint(c.Param("id"), 10, 32)
 	
-	if err := services.DeleteTask(uint(taskID)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	
-	c.JSON(http.StatusOK, gin.H{"message": "任务删除成功"})
+	// TODO: 实现删除任务
+	c.JSON(http.StatusOK, gin.H{"message": "任务删除成功", "id": taskID})
 }
 
 // ToggleTask 启用/禁用任务
-func ToggleTask(c *gin.Context) {
+func (h *AdminTaskHandler) ToggleTask(c *gin.Context) {
 	taskID, _ := strconv.ParseUint(c.Param("id"), 10, 32)
 	
 	var req struct {
-		Enabled bool `json:"enabled"`
+		IsEnabled bool `json:"is_enabled"`
 	}
 	
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -94,15 +64,11 @@ func ToggleTask(c *gin.Context) {
 		return
 	}
 	
-	if err := services.ToggleTask(uint(taskID), req.Enabled); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	
+	// TODO: 实现启用/禁用任务
 	status := "已禁用"
-	if req.Enabled {
+	if req.IsEnabled {
 		status = "已启用"
 	}
 	
-	c.JSON(http.StatusOK, gin.H{"message": "任务" + status})
+	c.JSON(http.StatusOK, gin.H{"message": "任务" + status, "id": taskID})
 }

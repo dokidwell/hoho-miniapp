@@ -1,14 +1,20 @@
 package services
 
 import (
-	"hoho-api/database"
-	"hoho-api/models"
+	"hoho-miniapp/backend/database"
+	"hoho-miniapp/backend/models"
 	
 	"github.com/shopspring/decimal"
 )
 
+type PlatformAccountService struct{}
+
+func NewPlatformAccountService() *PlatformAccountService {
+	return &PlatformAccountService{}
+}
+
 // GetPlatformAccount 获取平台账户信息
-func GetPlatformAccount() (*models.PlatformAccount, error) {
+func (s *PlatformAccountService) GetPlatformAccount() (*models.PlatformAccount, error) {
 	var account models.PlatformAccount
 	if err := database.DB.First(&account, 1).Error; err != nil {
 		return nil, err
@@ -17,7 +23,7 @@ func GetPlatformAccount() (*models.PlatformAccount, error) {
 }
 
 // RecordPlatformIncome 记录平台收入
-func RecordPlatformIncome(incomeType, amount, description string, relatedID *uint) error {
+func (s *PlatformAccountService) RecordPlatformIncome(incomeType, amount, description string, relatedID *uint) error {
 	// 获取平台账户
 	var account models.PlatformAccount
 	if err := database.DB.First(&account, 1).Error; err != nil {
@@ -59,7 +65,7 @@ func RecordPlatformIncome(incomeType, amount, description string, relatedID *uin
 }
 
 // RecordPlatformExpense 记录平台支出
-func RecordPlatformExpense(amount, description string, relatedID *uint) error {
+func (s *PlatformAccountService) RecordPlatformExpense(amount, description string, relatedID *uint) error {
 	// 获取平台账户
 	var account models.PlatformAccount
 	if err := database.DB.First(&account, 1).Error; err != nil {
@@ -95,7 +101,7 @@ func RecordPlatformExpense(amount, description string, relatedID *uint) error {
 }
 
 // GetPlatformTransactions 获取平台交易记录
-func GetPlatformTransactions(transactionType string, page, pageSize int) ([]models.PlatformTransaction, int64, error) {
+func (s *PlatformAccountService) GetPlatformTransactions(transactionType string, page, pageSize int) ([]models.PlatformTransaction, int64, error) {
 	var transactions []models.PlatformTransaction
 	var total int64
 	

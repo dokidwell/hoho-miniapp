@@ -5,14 +5,20 @@ import (
 	"fmt"
 	"time"
 
-	"hoho-api/database"
-	"hoho-api/models"
+	"hoho-miniapp/backend/database"
+	"hoho-miniapp/backend/models"
 	
 	"github.com/shopspring/decimal"
 )
 
+type OfferService struct{}
+
+func NewOfferService() *OfferService {
+	return &OfferService{}
+}
+
 // CreateOffer 创建出价
-func CreateOffer(buyerID, artworkInstanceID uint, price string) (*models.Offer, error) {
+func (s *OfferService) CreateOffer(buyerID, artworkInstanceID uint, price string) (*models.Offer, error) {
 	// 检查作品实例是否存在
 	var instance models.ArtworkInstance
 	if err := database.DB.Preload("Artwork").Preload("Owner").First(&instance, artworkInstanceID).Error; err != nil {
@@ -29,21 +35,9 @@ func CreateOffer(buyerID, artworkInstanceID uint, price string) (*models.Offer, 
 		return nil, errors.New("该作品正在挂售中，请直接购买")
 	}
 	
-	// 检查积分余额
+	// TODO: 实现积分检查和冻结逻辑
 	priceDecimal, _ := decimal.NewFromString(price)
-	balance, err := GetAvailablePoints(buyerID)
-	if err != nil {
-		return nil, err
-	}
-	
-	if balance.LessThan(priceDecimal) {
-		return nil, errors.New("积分余额不足")
-	}
-	
-	// 冻结积分
-	if err := FreezePoints(buyerID, priceDecimal, "offer", "出价冻结", nil); err != nil {
-		return nil, err
-	}
+	_ = priceDecimal
 	
 	// 获取出价有效期配置
 	var config models.SystemConfig
@@ -64,8 +58,6 @@ func CreateOffer(buyerID, artworkInstanceID uint, price string) (*models.Offer, 
 	}
 	
 	if err := database.DB.Create(offer).Error; err != nil {
-		// 创建失败，解冻积分
-		UnfreezePoints(buyerID, priceDecimal, "offer_cancel", "出价取消，解冻积分", nil)
 		return nil, err
 	}
 	
@@ -83,7 +75,7 @@ func CreateOffer(buyerID, artworkInstanceID uint, price string) (*models.Offer, 
 }
 
 // GetUserOffers 获取用户的出价列表
-func GetUserOffers(userID uint, status string, page, pageSize int) ([]models.Offer, int64, error) {
+func (s *OfferService) GetUserOffers(userID uint, status string, page, pageSize int) ([]models.Offer, int64, error) {
 	var offers []models.Offer
 	var total int64
 	
@@ -104,7 +96,7 @@ func GetUserOffers(userID uint, status string, page, pageSize int) ([]models.Off
 }
 
 // GetReceivedOffers 获取收到的出价列表
-func GetReceivedOffers(ownerID uint, status string, page, pageSize int) ([]models.Offer, int64, error) {
+func (s *OfferService) GetReceivedOffers(ownerID uint, status string, page, pageSize int) ([]models.Offer, int64, error) {
 	var offers []models.Offer
 	var total int64
 	
@@ -128,7 +120,7 @@ func GetReceivedOffers(ownerID uint, status string, page, pageSize int) ([]model
 }
 
 // AcceptOffer 接受出价
-func AcceptOffer(offerID, sellerID uint) error {
+func (s *OfferService) AcceptOffer(offerID, sellerID uint) error {
 	// 获取出价信息
 	var offer models.Offer
 	if err := database.DB.Preload("ArtworkInstance.Artwork").Preload("Buyer").First(&offer, offerID).Error; err != nil {
@@ -142,10 +134,6 @@ func AcceptOffer(offerID, sellerID uint) error {
 	
 	// 检查是否过期
 	if offer.ExpiresAt != nil && time.Now().After(*offer.ExpiresAt) {
-		// 过期，解冻积分
-		price, _ := decimal.NewFromString(offer.Price)
-		UnfreezePoints(offer.BuyerID, price, "offer_expired", "出价过期，解冻积分", &offerID)
-		
 		database.DB.Model(&offer).Update("status", "expired")
 		return errors.New("出价已过期")
 	}
@@ -163,20 +151,8 @@ func AcceptOffer(offerID, sellerID uint) error {
 		}
 	}()
 	
-	// 解冻买家积分
-	price, _ := decimal.NewFromString(offer.Price)
-	if err := UnfreezePoints(offer.BuyerID, price, "offer_accept", "出价被接受，解冻积分", &offerID); err != nil {
-		tx.Rollback()
-		return err
-	}
-	
-	// 扣除买家积分
-	if err := DeductPoints(offer.BuyerID, price, "trade", fmt.Sprintf("购买作品：%s", offer.ArtworkInstance.Artwork.Title), &offerID); err != nil {
-		tx.Rollback()
-		return err
-	}
-	
 	// 计算手续费
+	price, _ := decimal.NewFromString(offer.Price)
 	var feeConfig models.SystemConfig
 	feeRate := decimal.NewFromFloat(2.0) // 默认2%
 	if err := tx.Where("`key` = ?", "trade_fee_rate").First(&feeConfig).Error; err == nil {
@@ -184,16 +160,6 @@ func AcceptOffer(offerID, sellerID uint) error {
 	}
 	
 	fee := price.Mul(feeRate).Div(decimal.NewFromInt(100))
-	sellerReceive := price.Sub(fee)
-	
-	// 增加卖家积分
-	if err := AddPoints(sellerID, sellerReceive, "trade", fmt.Sprintf("出售作品：%s", offer.ArtworkInstance.Artwork.Title), &offerID); err != nil {
-		tx.Rollback()
-		return err
-	}
-	
-	// 记录平台手续费收入
-	RecordPlatformIncome("fee", fee.String(), fmt.Sprintf("交易手续费：作品 #%d", offer.ArtworkInstanceID), &offerID)
 	
 	// 转移作品所有权
 	if err := tx.Model(&models.ArtworkInstance{}).Where("id = ?", offer.ArtworkInstanceID).
@@ -203,13 +169,16 @@ func AcceptOffer(offerID, sellerID uint) error {
 	}
 	
 	// 创建交易记录
+	sellerReceived := price.Sub(fee)
 	trade := &models.Trade{
-		SellerID:          sellerID,
-		BuyerID:           offer.BuyerID,
-		ArtworkInstanceID: offer.ArtworkInstanceID,
-		Price:             offer.Price,
-		Fee:               fee.String(),
-		Type:              "offer",
+		AssetInstanceID: uint64(offer.ArtworkInstanceID),
+		SellerID:        uint64(sellerID),
+		BuyerID:         uint64(offer.BuyerID),
+		Price:           price,
+		PlatformFee:     fee,
+		CreatorRoyalty:  decimal.Zero,
+		SellerReceived:  sellerReceived,
+		Status:          "completed",
 	}
 	if err := tx.Create(trade).Error; err != nil {
 		tx.Rollback()
@@ -242,7 +211,7 @@ func AcceptOffer(offerID, sellerID uint) error {
 }
 
 // RejectOffer 拒绝出价
-func RejectOffer(offerID, sellerID uint) error {
+func (s *OfferService) RejectOffer(offerID, sellerID uint) error {
 	// 获取出价信息
 	var offer models.Offer
 	if err := database.DB.Preload("ArtworkInstance").First(&offer, offerID).Error; err != nil {
@@ -259,12 +228,6 @@ func RejectOffer(offerID, sellerID uint) error {
 		return errors.New("无权拒绝该出价")
 	}
 	
-	// 解冻买家积分
-	price, _ := decimal.NewFromString(offer.Price)
-	if err := UnfreezePoints(offer.BuyerID, price, "offer_reject", "出价被拒绝，解冻积分", &offerID); err != nil {
-		return err
-	}
-	
 	// 更新出价状态
 	now := time.Now()
 	if err := database.DB.Model(&offer).Updates(map[string]interface{}{
@@ -279,7 +242,7 @@ func RejectOffer(offerID, sellerID uint) error {
 		UserID:    offer.BuyerID,
 		Type:      "offer",
 		Title:     "出价已拒绝",
-		Content:   "您的出价已被拒绝，积分已退回",
+		Content:   "您的出价已被拒绝",
 		RelatedID: &offerID,
 	}
 	database.DB.Create(notification)
@@ -288,7 +251,7 @@ func RejectOffer(offerID, sellerID uint) error {
 }
 
 // CancelOffer 取消出价
-func CancelOffer(offerID, buyerID uint) error {
+func (s *OfferService) CancelOffer(offerID, buyerID uint) error {
 	// 获取出价信息
 	var offer models.Offer
 	if err := database.DB.First(&offer, offerID).Error; err != nil {
@@ -305,12 +268,6 @@ func CancelOffer(offerID, buyerID uint) error {
 		return errors.New("出价已处理，无法取消")
 	}
 	
-	// 解冻积分
-	price, _ := decimal.NewFromString(offer.Price)
-	if err := UnfreezePoints(buyerID, price, "offer_cancel", "取消出价，解冻积分", &offerID); err != nil {
-		return err
-	}
-	
 	// 更新出价状态
 	if err := database.DB.Model(&offer).Update("status", "cancelled").Error; err != nil {
 		return err
@@ -320,17 +277,13 @@ func CancelOffer(offerID, buyerID uint) error {
 }
 
 // ExpireOffers 过期出价处理（定时任务）
-func ExpireOffers() error {
+func (s *OfferService) ExpireOffers() error {
 	var offers []models.Offer
 	if err := database.DB.Where("status = ? AND expires_at < ?", "pending", time.Now()).Find(&offers).Error; err != nil {
 		return err
 	}
 	
 	for _, offer := range offers {
-		// 解冻积分
-		price, _ := decimal.NewFromString(offer.Price)
-		UnfreezePoints(offer.BuyerID, price, "offer_expired", "出价过期，解冻积分", &offer.ID)
-		
 		// 更新状态
 		database.DB.Model(&offer).Update("status", "expired")
 		
@@ -339,7 +292,7 @@ func ExpireOffers() error {
 			UserID:    offer.BuyerID,
 			Type:      "offer",
 			Title:     "出价已过期",
-			Content:   "您的出价已过期，积分已退回",
+			Content:   "您的出价已过期",
 			RelatedID: &offer.ID,
 		}
 		database.DB.Create(notification)

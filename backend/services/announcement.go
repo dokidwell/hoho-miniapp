@@ -3,12 +3,18 @@ package services
 import (
 	"time"
 
-	"hoho-api/database"
-	"hoho-api/models"
+	"hoho-miniapp/backend/database"
+	"hoho-miniapp/backend/models"
 )
 
+type AnnouncementService struct{}
+
+func NewAnnouncementService() *AnnouncementService {
+	return &AnnouncementService{}
+}
+
 // GetAnnouncements 获取公告列表
-func GetAnnouncements(announcementType string, page, pageSize int) ([]models.Announcement, int64, error) {
+func (s *AnnouncementService) GetAnnouncements(announcementType string, page, pageSize int) ([]models.Announcement, int64, error) {
 	var announcements []models.Announcement
 	var total int64
 	
@@ -30,7 +36,7 @@ func GetAnnouncements(announcementType string, page, pageSize int) ([]models.Ann
 }
 
 // GetAnnouncementByID 根据ID获取公告
-func GetAnnouncementByID(id uint) (*models.Announcement, error) {
+func (s *AnnouncementService) GetAnnouncementByID(id uint) (*models.Announcement, error) {
 	var announcement models.Announcement
 	if err := database.DB.First(&announcement, id).Error; err != nil {
 		return nil, err
@@ -39,7 +45,7 @@ func GetAnnouncementByID(id uint) (*models.Announcement, error) {
 }
 
 // CreateAnnouncement 创建公告
-func CreateAnnouncement(title, content, announcementType, priority string, isPinned bool) (*models.Announcement, error) {
+func (s *AnnouncementService) CreateAnnouncement(title, content, announcementType, priority string, isPinned bool) (*models.Announcement, error) {
 	announcement := &models.Announcement{
 		Title:       title,
 		Content:     content,
@@ -57,7 +63,7 @@ func CreateAnnouncement(title, content, announcementType, priority string, isPin
 }
 
 // PublishAnnouncement 发布公告
-func PublishAnnouncement(id uint) error {
+func (s *AnnouncementService) PublishAnnouncement(id uint) error {
 	now := time.Now()
 	return database.DB.Model(&models.Announcement{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"is_published": true,
@@ -66,11 +72,11 @@ func PublishAnnouncement(id uint) error {
 }
 
 // UnpublishAnnouncement 取消发布公告
-func UnpublishAnnouncement(id uint) error {
+func (s *AnnouncementService) UnpublishAnnouncement(id uint) error {
 	return database.DB.Model(&models.Announcement{}).Where("id = ?", id).Update("is_published", false).Error
 }
 
 // DeleteAnnouncement 删除公告
-func DeleteAnnouncement(id uint) error {
+func (s *AnnouncementService) DeleteAnnouncement(id uint) error {
 	return database.DB.Delete(&models.Announcement{}, id).Error
 }

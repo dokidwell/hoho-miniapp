@@ -5,12 +5,18 @@ import (
 	"fmt"
 	"time"
 
-	"hoho-api/database"
-	"hoho-api/models"
+	"hoho-miniapp/backend/database"
+	"hoho-miniapp/backend/models"
 )
 
-// CreateCreation 创建创作
-func CreateCreation(userID uint, title, description, mediaURL, thumbnailURL string, totalSupply uint, price string) (*models.Creation, error) {
+type CreationService struct{}
+
+func NewCreationService() *CreationService {
+	return &CreationService{}
+}
+
+// SubmitCreation 提交创作
+func (s *CreationService) SubmitCreation(userID uint, title, description, mediaURL, thumbnailURL string, totalSupply uint, price string) (*models.Creation, error) {
 	creation := &models.Creation{
 		UserID:       userID,
 		Title:        title,
@@ -36,7 +42,7 @@ func CreateCreation(userID uint, title, description, mediaURL, thumbnailURL stri
 }
 
 // GetCreationByID 根据ID获取创作
-func GetCreationByID(id uint) (*models.Creation, error) {
+func (s *CreationService) GetCreationByID(id uint) (*models.Creation, error) {
 	var creation models.Creation
 	if err := database.DB.Preload("User").First(&creation, id).Error; err != nil {
 		return nil, err
@@ -45,7 +51,7 @@ func GetCreationByID(id uint) (*models.Creation, error) {
 }
 
 // GetUserCreations 获取用户的创作列表
-func GetUserCreations(userID uint, status string, page, pageSize int) ([]models.Creation, int64, error) {
+func (s *CreationService) GetUserCreations(userID uint, status string, page, pageSize int) ([]models.Creation, int64, error) {
 	var creations []models.Creation
 	var total int64
 	
@@ -65,7 +71,7 @@ func GetUserCreations(userID uint, status string, page, pageSize int) ([]models.
 }
 
 // GetPendingCreations 获取待审核的创作列表
-func GetPendingCreations(page, pageSize int) ([]models.Creation, int64, error) {
+func (s *CreationService) GetPendingCreations(page, pageSize int) ([]models.Creation, int64, error) {
 	var creations []models.Creation
 	var total int64
 	
@@ -81,7 +87,7 @@ func GetPendingCreations(page, pageSize int) ([]models.Creation, int64, error) {
 }
 
 // ApproveCreation 审核通过创作
-func ApproveCreation(creationID, reviewerID uint) error {
+func (s *CreationService) ApproveCreation(creationID, reviewerID uint) error {
 	now := time.Now()
 	
 	// 更新创作状态
@@ -141,7 +147,7 @@ func ApproveCreation(creationID, reviewerID uint) error {
 }
 
 // RejectCreation 审核拒绝创作
-func RejectCreation(creationID, reviewerID uint, reason string) error {
+func (s *CreationService) RejectCreation(creationID, reviewerID uint, reason string) error {
 	now := time.Now()
 	
 	// 更新创作状态
@@ -174,7 +180,7 @@ func RejectCreation(creationID, reviewerID uint, reason string) error {
 }
 
 // PublishCreation 发布创作
-func PublishCreation(creationID uint, releaseDate *time.Time) error {
+func (s *CreationService) PublishCreation(creationID uint, releaseDate *time.Time) error {
 	// 检查创作状态
 	var creation models.Creation
 	if err := database.DB.First(&creation, creationID).Error; err != nil {

@@ -4,13 +4,22 @@ import (
 	"net/http"
 	"strconv"
 
-	"hoho-api/services"
-
 	"github.com/gin-gonic/gin"
+	"hoho-miniapp/backend/services"
 )
 
+type OfferHandler struct {
+	offerService *services.OfferService
+}
+
+func NewOfferHandler(offerService *services.OfferService) *OfferHandler {
+	return &OfferHandler{
+		offerService: offerService,
+	}
+}
+
 // CreateOffer 创建出价
-func CreateOffer(c *gin.Context) {
+func (h *OfferHandler) CreateOffer(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	
 	var req struct {
@@ -23,7 +32,7 @@ func CreateOffer(c *gin.Context) {
 		return
 	}
 	
-	offer, err := services.CreateOffer(userID.(uint), req.ArtworkInstanceID, req.Price)
+	offer, err := h.offerService.CreateOffer(userID.(uint), req.ArtworkInstanceID, req.Price)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -36,14 +45,14 @@ func CreateOffer(c *gin.Context) {
 }
 
 // GetMyOffers 获取我的出价列表
-func GetMyOffers(c *gin.Context) {
+func (h *OfferHandler) GetMyOffers(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	
 	status := c.Query("status")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	
-	offers, total, err := services.GetUserOffers(userID.(uint), status, page, pageSize)
+	offers, total, err := h.offerService.GetUserOffers(userID.(uint), status, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -55,65 +64,30 @@ func GetMyOffers(c *gin.Context) {
 		"page":      page,
 		"page_size": pageSize,
 	})
-}
-
-// GetReceivedOffers 获取收到的出价列表
-func GetReceivedOffers(c *gin.Context) {
-	userID, _ := c.Get("user_id")
-	
-	status := c.Query("status")
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
-	
-	offers, total, err := services.GetReceivedOffers(userID.(uint), status, page, pageSize)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	
-	c.JSON(http.StatusOK, gin.H{
-		"offers":    offers,
-		"total":     total,
-		"page":      page,
-		"page_size": pageSize,
-	})
-}
-
-// AcceptOffer 接受出价
-func AcceptOffer(c *gin.Context) {
-	userID, _ := c.Get("user_id")
-	offerID, _ := strconv.ParseUint(c.Param("id"), 10, 32)
-	
-	if err := services.AcceptOffer(uint(offerID), userID.(uint)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	
-	c.JSON(http.StatusOK, gin.H{"message": "出价已接受"})
-}
-
-// RejectOffer 拒绝出价
-func RejectOffer(c *gin.Context) {
-	userID, _ := c.Get("user_id")
-	offerID, _ := strconv.ParseUint(c.Param("id"), 10, 32)
-	
-	if err := services.RejectOffer(uint(offerID), userID.(uint)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	
-	c.JSON(http.StatusOK, gin.H{"message": "出价已拒绝"})
 }
 
 // CancelOffer 取消出价
-func CancelOffer(c *gin.Context) {
+func (h *OfferHandler) CancelOffer(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	offerID, _ := strconv.ParseUint(c.Param("id"), 10, 32)
 	
-	if err := services.CancelOffer(uint(offerID), userID.(uint)); err != nil {
+	if err := h.offerService.CancelOffer(uint(offerID), userID.(uint)); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	
 	c.JSON(http.StatusOK, gin.H{"message": "出价已取消"})
+}
+
+// AcceptOffer 接受出价
+func (h *OfferHandler) AcceptOffer(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	offerID, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+	
+	if err := h.offerService.AcceptOffer(uint(offerID), userID.(uint)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"message": "出价已接受"})
 }
