@@ -48,7 +48,7 @@ func (s *AirdropService) AirdropPoints(userID uint64, amount decimal.Decimal, re
 		event := models.CommunityEvent{
 			EventType:   "airdrop_points",
 			UserID:      userID,
-			Description: fmt.Sprintf("用户获得空投积分 %.8f，原因：%s", amount, reason),
+			Description: fmt.Sprintf("用户获得空投积分 %s，原因：%s", amount.String(), reason),
 			RelatedID:   transaction.ID,
 			RelatedType: "point_transaction",
 		}

@@ -301,7 +301,7 @@ func (s *TradeService) CompleteTradePayment(tradeID uint64) error {
 		event := models.CommunityEvent{
 			EventType:   "trade",
 			UserID:      trade.BuyerID,
-			Description: fmt.Sprintf("用户 uid%d 以 %.8f 积分购买了藏品", trade.BuyerID, trade.Price),
+			Description: fmt.Sprintf("用户 uid%d 以 %s 积分购买了藏品", trade.BuyerID, trade.Price.String()),
 			RelatedID:   trade.ID,
 			RelatedType: "trade",
 		}
