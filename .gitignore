@@ -61,3 +61,10 @@ temp/
 *.bak
 *.swp
 backend/.env.production
+
+# Security
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx

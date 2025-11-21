@@ -205,6 +205,13 @@ func registerRoutes(router *gin.Engine) {
 			listingsPublic.GET("", tradeHandler.ListListings)
 			listingsPublic.GET("/:id", tradeHandler.GetListingDetail)
 		}
+
+		// 公开的事件路由
+		eventsPublic := v1.Group("/events")
+		{
+			eventsPublic.GET("", eventHandler.ListEvents)
+			eventsPublic.GET("/:id", eventHandler.GetEventDetail)
+		}
 	}
 
 	// 初始化管理员服务和处理器
